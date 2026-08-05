@@ -3,602 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Обучающий портал | День 1</title>
-    
-    <!-- OWASP: Строгая политика CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.yourservice.com;">
-
-    <!-- Типографика -->
+    <title>МТС | Портал обучения агентов</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* ================= BASE STYLES & TYPOGRAPHY ================= */
         :root {
-            --bg-color: #0a0a0f;
-            --accent-neon: #00ffcc;
-            --accent-error: #ff3366;
-            --glass-bg: rgba(255, 255, 255, 0.03);
+            --mts-red: #E30611;
+            --mts-dark-red: #b5040d;
+            --bg-deep: #050507;
+            --glass-bg: rgba(20, 20, 25, 0.65);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
+            --text-main: #FFFFFF;
+            --text-muted: #94949D;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-deep);
             color: var(--text-main);
-            overflow-x: hidden;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Canvas Background */
-        #bg-canvas {
+        /* Анимированный футуристичный фон */
+        .bg-mesh {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: -1;
-            pointer-events: none;
+            background: radial-gradient(circle at 10% 20%, rgba(227, 6, 17, 0.12) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(227, 6, 17, 0.08) 0%, transparent 40%),
+                        var(--bg-deep);
+            overflow: hidden;
         }
 
-        h1, h2, h3 {
-            font-weight: 600;
+        .bg-mesh::after {
+            content: '';
+            position: absolute;
+            width: 200%; height: 200%;
+            top: -50%; left: -50%;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+            animation: grid-move 60s linear infinite;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(32px, 32px); }
+        }
+
+        /* Экран блокировки (PIN Gate) */
+        #pin-gate {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 7, 0.85);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s cubic-bezier(0.8, 0, 0.2, 1), visibility 0.6s;
+        }
+
+        .auth-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-top: 3px solid var(--mts-red);
+            padding: 40px 32px;
+            border-radius: 28px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(227, 6, 17, 0.1);
+            animation: card-appear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .mts-badge {
+            background: linear-gradient(135deg, var(--mts-red), var(--mts-dark-red));
+            color: #fff;
+            font-weight: 900;
+            font-size: 24px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(227, 6, 17, 0.4);
+            letter-spacing: 1px;
+            animation: badge-pulse 3s infinite ease-in-out;
+        }
+
+        .auth-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
             color: #fff;
         }
 
-        p {
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
-            line-height: 1.6;
-            margin-bottom: 1rem;
+        .auth-card p {
+            font-size: 13px;
             color: var(--text-muted);
+            margin-bottom: 32px;
+            line-height: 1.5;
         }
 
-        ul {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--text-muted);
-            font-size: clamp(0.875rem, 2.5vw, 1rem);
-            line-height: 1.6;
+        .pin-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
 
-        strong {
-            color: var(--text-main);
+        .pin-digit {
+            width: 48px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-
-        /* ================= PIN GATE (LOCK SCREEN) ================= */
-        #pin-gate {
- <!-- ======================================= -->
-<!-- НАЧАЛО НОВОГО ДИЗАЙНА МТС -->
-<!-- ======================================= -->
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;900&display=swap');
-
-    .mts-pin-gate {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        background-color: #000000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        font-family: 'Montserrat', sans-serif;
-        transition: opacity 0.6s cubic-bezier(0.8, 0, 0.2, 1), visibility 0.6s;
-        overflow: hidden;
-    }
-
-    .mts-bg-glow {
-        position: absolute;
-        width: 50vw; height: 50vw;
-        max-width: 500px; max-height: 500px;
-        background: radial-gradient(circle, rgba(227,6,17,0.15) 0%, rgba(0,0,0,0) 70%);
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        animation: mts-pulse-glow 4s infinite alternate ease-in-out;
-        z-index: 1;
-    }
-
-    .mts-auth-card {
-        background: rgba(20, 20, 22, 0.75);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-top: 4px solid #E30611;
-        padding: 40px 30px;
-        border-radius: 24px;
-        text-align: center;
-        z-index: 2;
-        width: 90%;
-        max-width: 420px;
-        box-shadow: 0 24px 64px rgba(0,0,0,0.6);
-        transform: translateY(0);
-        animation: mts-slide-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    .mts-logo {
-        background-color: #E30611;
-        color: #FFFFFF;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 900;
-        font-size: 26px;
-        display: inline-block;
-        padding: 10px 18px;
-        border-radius: 8px;
-        letter-spacing: 1px;
-        margin-bottom: 24px;
-        box-shadow: 0 8px 24px rgba(227, 6, 17, 0.35);
-        animation: mts-drop-in 1s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    .mts-auth-card h2 {
-        color: #FFFFFF;
-        margin: 0 0 8px 0;
-        font-size: 22px;
-        font-weight: 600;
-    }
-
-    .mts-auth-card p {
-        color: #999;
-        margin: 0 0 32px 0;
-        font-size: 14px;
-        line-height: 1.5;
-    }
-
-    .mts-pin-container {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-    }
-
-    .mts-input {
-        width: 50px;
-        height: 64px;
-        background: #111;
-        border: 2px solid #2a2a2a;
-        border-radius: 12px;
-        font-size: 28px;
-        font-weight: 600;
-        color: #fff;
-        text-align: center;
-        outline: none;
-        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-        box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    .mts-input:focus {
-        border-color: #E30611;
-        background: #181818;
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(227, 6, 17, 0.2), inset 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .mts-input.success-border {
-        border-color: #00B341; 
-        background: rgba(0, 179, 65, 0.05);
-        box-shadow: 0 0 20px rgba(0, 179, 65, 0.2);
-    }
-
-    .mts-input.error-border {
-        border-color: #E30611;
-        color: #E30611;
-        background: rgba(227, 6, 17, 0.08);
-    }
-
-    .error-shake {
-        animation: mts-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-    }
-
-    .pin-gate-hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transform: scale(1.05);
-    }
-
-    @keyframes mts-pulse-glow {
-        0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
-        100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-    }
-
-    @keyframes mts-slide-up {
-        0% { opacity: 0; transform: translateY(40px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes mts-drop-in {
-        0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
-        100% { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    @keyframes mts-shake {
-        10%, 90% { transform: translate3d(-2px, 0, 0); }
-        20%, 80% { transform: translate3d(4px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-        40%, 60% { transform: translate3d(6px, 0, 0); }
-    }
-</style>
-
-<div id="pin-gate" class="mts-pin-gate">
-    <div class="mts-bg-glow"></div>
-    <div class="mts-auth-card">
-        <div class="mts-logo">МТС</div>
-        <h2>Портал обучения и адаптации</h2>
-        <p>Введите код доступа агента для входа в систему</p>
-        <div class="mts-pin-container" id="pin-container">
-            <input type="password" inputmode="numeric" class="pin-digit mts-input" maxlength="1" autocomplete="off">
-            <input type="password" inputmode="numeric" class="pin-digit mts-input" maxlength="1" autocomplete="off">
-            <input type="password" inputmode="numeric" class="pin-digit mts-input" maxlength="1" autocomplete="off">
-            <input type="password" inputmode="numeric" class="pin-digit mts-input" maxlength="1" autocomplete="off">
-            <input type="password" inputmode="numeric" class="pin-digit mts-input" maxlength="1" autocomplete="off">
-        </div>
-    </div>
-</div>
-<!-- ======================================= -->
-<!-- КОНЕЦ НОВОГО ДИЗАЙНА -->
-<!-- ======================================= -->
-    
 
         .pin-digit:focus {
-            border-color: var(--accent-neon);
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            border-color: var(--mts-red);
+            background: rgba(227, 6, 17, 0.05);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(227, 6, 17, 0.3);
         }
 
-        /* Animations */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-10px); }
-            40%, 80% { transform: translateX(10px); }
+        .pin-digit.success-border {
+            border-color: #00C853;
+            background: rgba(0, 200, 83, 0.1);
+            color: #00C853;
         }
+
+        .pin-digit.error-border {
+            border-color: var(--mts-red);
+            color: var(--mts-red);
+            background: rgba(227, 6, 17, 0.15);
+        }
+
         .error-shake {
             animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
         }
-        .error-border {
-            border-color: var(--accent-error) !important;
-            box-shadow: 0 0 15px rgba(255, 51, 102, 0.3) !important;
-        }
-        .success-border {
-            border-color: var(--accent-neon) !important;
+
+        .pin-gate-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(1.05);
         }
 
-        /* ================= MAIN CONTENT (BENTO GRID) ================= */
+        /* Основной контент сайта */
         #main-content {
-            display: none; /* Скрыто до ввода пин-кода */
-            padding: clamp(1rem, 5vw, 3rem);
-            max-width: 1200px;
-            margin: 0 auto;
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.8s ease, transform 0.8s ease;
-            will-change: opacity, transform;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: none;
         }
 
         #main-content.visible {
-            display: block;
             opacity: 1;
             transform: translateY(0);
+            display: block;
         }
 
-        .hero-section {
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, rgba(0, 255, 204, 0.1) 0%, rgba(0,0,0,0) 100%), var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            backdrop-filter: blur(12px);
-        }
-
-        .hero-title {
-            font-size: clamp(1.5rem, 6vw, 3rem);
-            font-weight: 800;
-            background: linear-gradient(90deg, #fff, var(--accent-neon));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            grid-auto-flow: dense;
-        }
-
-        /* Карточка Bento */
-        .bento-card {
+        .main-header {
             background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
+            padding: 24px;
             border-radius: 20px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
-            will-change: transform, box-shadow;
+            margin-bottom: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
         }
 
-        .bento-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.05);
-            border-color: rgba(255,255,255,0.15);
+        .main-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 8px;
         }
 
-        /* Некоторые карточки делаем шире для красоты сетки (на десктопе) */
-        @media (min-width: 768px) {
-            .bento-card:nth-child(1), .bento-card:nth-child(11) {
-                grid-column: span 2;
-            }
+        .main-header p {
+            color: var(--text-muted);
+            font-size: 14px;
         }
 
-        .card-number {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--accent-neon);
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+        /* Анимации */
+        @keyframes card-appear {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .card-title {
-            font-size: clamp(1.1rem, 3vw, 1.25rem);
-            margin-bottom: 1rem;
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 10px 25px rgba(227, 6, 17, 0.4); }
+            50% { box-shadow: 0 10px 35px rgba(227, 6, 17, 0.7); }
         }
 
-        /* Заглушка для видео */
-        .video-placeholder {
-            margin-top: auto;
-            padding-top: 1rem;
-            width: 100%;
-        }
-
-        .video-box {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .video-box:hover {
-            background: rgba(0, 255, 204, 0.05);
-            border-color: var(--accent-neon);
-        }
-
-        .video-box span {
-            color: var(--accent-neon);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
         }
     </style>
 </head>
 <body>
 
-    <!-- GPU-Accelerated Canvas Background -->
-    <canvas id="bg-canvas"></canvas>
+    <div class="bg-mesh"></div>
 
-    <!-- Экран блокировки (PIN-Gate) -->
+    <!-- Экран блокировки с пин-кодом -->
     <div id="pin-gate">
-        <div class="pin-container" id="pin-container">
-            <h2 class="pin-title">Доступ к порталу</h2>
-            <p class="pin-subtitle">Введите 5-значный код доступа</p>
-            <div class="pin-inputs">
-                <input type="tel" maxlength="1" class="pin-digit" autofocus autocomplete="off">
-                <input type="tel" maxlength="1" class="pin-digit" autocomplete="off">
-                <input type="tel" maxlength="1" class="pin-digit" autocomplete="off">
-                <input type="tel" maxlength="1" class="pin-digit" autocomplete="off">
-                <input type="tel" maxlength="1" class="pin-digit" autocomplete="off">
+        <div class="auth-card">
+            <div class="mts-badge">МТС</div>
+            <h2>Портал адаптации</h2>
+            <p>Введите 5-значный код доступа агента</p>
+            <div class="pin-container" id="pin-container">
+                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
+                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
+                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
+                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
+                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
             </div>
         </div>
     </div>
 
-    <!-- Основной контент -->
-    <main id="main-content">
-        <section class="hero-section">
-            <h1 class="hero-title">Стажёр: День 1 | Старт</h1>
-            <p>Добро пожаловать в команду. Здесь собраны все необходимые инструкции и стандарты для успешного старта в полях.</p>
-        </section>
-
-        <div class="bento-grid">
-            <!-- Блок 1 -->
-            <article class="bento-card">
-                <div class="card-number">01</div>
-                <h3 class="card-title">Стажировочный день: Программа Inventory и расклейка</h3>
-                <p>Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением <strong>Inventory</strong>, а также освоим базовые принципы работы на территории.</p>
-                <p>Вы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании.</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 2 -->
-            <article class="bento-card">
-                <div class="card-number">02</div>
-                <h3 class="card-title">Программа Inventory: Статистика за месяц</h3>
-                <p>Приложение Inventory — это ваш личный кабинет и главный помощник.</p>
-                <ul>
-                    <li><strong>Аналитика:</strong> Следите за количеством пройденных домов и выполненных задач в режиме реального времени.</li>
-                    <li><strong>Прогресс:</strong> Изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии.</li>
-                </ul>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 3 -->
-            <article class="bento-card">
-                <div class="card-number">03</div>
-                <h3 class="card-title">Адреса твоей территории</h3>
-                <p>В этом блоке мы разбираем, как работать с адресной базой. Вы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Четкое следование маршруту экономит ваши силы и увеличивает охват.</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 4 -->
-            <article class="bento-card">
-                <div class="card-number">04</div>
-                <h3 class="card-title">Чек-лист рабочего дня</h3>
-                <p>Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист включает в себя все этапы: от планирования дня до отправки вечернего отчета. Привычка сверяться с чек-листами поможет избежать ошибок и выполнять работу без замечаний.</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 5 -->
-            <article class="bento-card">
-                <div class="card-number">05</div>
-                <h3 class="card-title">Работа в полях: Открытие чек-листа</h3>
-                <p>Вы прибыли на адрес — время начинать работу. Подойдя к нужному дому, первым делом откройте чек-лист в приложении. Это действие фиксирует начало вашей работы на конкретном адресе. <strong>Без открытого чек-листа проделанная работа не будет учтена!</strong></p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 6 -->
-            <article class="bento-card">
-                <div class="card-number">06</div>
-                <h3 class="card-title">Предподъездная доска объявлений</h3>
-                <p>Обратите внимание на доску объявлений перед подъездом. Разместите рекламу ровно, аккуратно и на самом видном месте. Убедитесь, что листовка надежно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании.</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 7 -->
-            <article class="bento-card">
-                <div class="card-number">07</div>
-                <h3 class="card-title">Визуализация в подъезде</h3>
-                <p>Работа внутри подъезда требует особого внимания.</p>
-                <ul>
-                    <li><strong>Щитки и коробки:</strong> Размещайте листовки строго в отведенных для этого местах.</li>
-                    <li><strong>Трубостойки:</strong> Убедитесь, что визуализация не перекрывает доступ к оборудованию. Листовка должна быть заметна каждому.</li>
-                </ul>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 8 -->
-            <article class="bento-card">
-                <div class="card-number">08</div>
-                <h3 class="card-title">Фотоотчёт</h3>
-                <p>Фотография — подтверждение качества вашей работы. Сфотографируйте каждую листовку. Делайте светлые и четкие снимки. В кадр должен полностью попадать размещенный материал и часть окружающего пространства (номер квартиры или контуры щитка).</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 9 -->
-            <article class="bento-card">
-                <div class="card-number">09</div>
-                <h3 class="card-title">Почтовые ящики</h3>
-                <p>Раскидка по ящикам — эффективный инструмент. Вкладывайте листовки так, чтобы они не торчали и не падали. Действуйте системно: ни один ящик не должен быть пропущен (если иное не указано в маршрутном листе). Относитесь к имуществу с уважением.</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 10 -->
-            <article class="bento-card">
-                <div class="card-number">10</div>
-                <h3 class="card-title">Закрытие чек-листа</h3>
-                <p>Работа завершена только тогда, когда вы закрыли чек-лист в системе. Отметьте, в каких подъездах разместили рекламу, были ли листовки конкурентов, и подошёл ли ключ-вездеход. Сохраните результат. Только после этого переходите к следующему адресу.</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 11 -->
-            <article class="bento-card">
-                <div class="card-number">11</div>
-                <h3 class="card-title">Вечерний отчёт за день</h3>
-                <p>Сводка вашей активности за день (позволяет оценить эффективность и спланировать завтрашний день):</p>
-                <ul>
-                    <li><strong>В (Визуализация):</strong> пройденные квартиры при размещении рекламы.</li>
-                    <li><strong>Дмх (Домовой Обход):</strong> пройденные квартиры при поквартирном обходе.</li>
-                    <li><strong>Од (Открытые двери):</strong> открытые двери при обходе.</li>
-                    <li><strong>Вхз (Входяшка):</strong> звонки на ваш виртуальный номер по листовке.</li>
-                    <li><strong>Птнц (Потенциальный абонент):</strong> оставили контакт для подключения.</li>
-                    <li><strong>П (Продажи):</strong> измеряется в услугах (конвергент - 2, допрас - 1).</li>
-                    <li><strong>Пр / Пс:</strong> продажи роутеров / приставок.</li>
-                </ul>
-                <p><em>* В конце обязательно пишется список пройденных за день домов.</em></p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
-
-            <!-- Блок 12 -->
-            <article class="bento-card">
-                <div class="card-number">12</div>
-                <h3 class="card-title">Вечерний фотоотчёт по визуализации</h3>
-                <p>Финальный этап смены. Вам необходимо загрузить все сделанные за день фотографии (доски, щитки, коробки) в специальный чат. Убедитесь, что они подписаны по адресам, загрузились без ошибок и соответствуют регламенту в закрепе.</p>
-                <div class="video-placeholder"><div class="video-box"><span>▶ Видеоинструкция</span></div></div>
-            </article>
+    <!-- Основной контент (появится после верного пина) -->
+    <div id="main-content">
+        <div class="main-header">
+            <h1>Добро пожаловать в команду, стажёр!</h1>
+            <p>Система авторизована. Все материалы и инструкции разблокированы.</p>
         </div>
-    </main>
+        <!-- Сюда можешь вставлять свои блоки со стажировкой -->
+    </div>
 
-    <!-- Скрипты приложения -->
     <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const pinGate = document.getElementById('pin-gate');
-    const mainContent = document.getElementById('main-content');
-    const pinInputs = document.querySelectorAll('.pin-digit');
-    const pinContainer = document.getElementById('pin-container');
-    const correctPin = '79124';
+        document.addEventListener('DOMContentLoaded', () => {
+            const pinGate = document.getElementById('pin-gate');
+            const mainContent = document.getElementById('main-content');
+            const pinInputs = document.querySelectorAll('.pin-digit');
+            const pinContainer = document.getElementById('pin-container');
+            const correctPin = '79124';
 
-    if (sessionStorage.getItem('auth_passed') === 'true') {
-        unlockPortal();
-    }
-
-    function checkPin() {
-        const enteredPin = Array.from(pinInputs).map(i => i.value).join('');
-        if (enteredPin.length === 5) {
-            pinInputs.forEach(i => i.disabled = true);
-            if (enteredPin === correctPin) {
-                pinInputs.forEach(i => {
-                    i.classList.remove('error-border');
-                    i.classList.add('success-border');
-                });
-                sessionStorage.setItem('auth_passed', 'true');
-                setTimeout(unlockPortal, 500);
-            } else {
-                pinContainer.classList.add('error-shake');
-                pinInputs.forEach(i => i.classList.add('error-border'));
-                setTimeout(() => {
-                    pinContainer.classList.remove('error-shake');
-                    pinInputs.forEach(i => {
-                        i.value = '';
-                        i.disabled = false;
-                        i.classList.remove('error-border');
-                    });
-                    pinInputs[0].focus();
-                }, 500);
+            if (sessionStorage.getItem('auth_passed') === 'true') {
+                unlockPortalInstant();
             }
-        }
-    }
 
-    pinInputs.forEach((input, index) => {
-        ['input', 'change', 'keyup'].forEach(eventType => {
-            input.addEventListener(eventType, () => {
-                input.value = input.value.replace(/\D/g, '');
-                if (input.value && index < pinInputs.length - 1) {
-                    pinInputs[index + 1].focus();
+            function checkPin() {
+                const enteredPin = Array.from(pinInputs).map(i => i.value).join('');
+                if (enteredPin.length === 5) {
+                    pinInputs.forEach(i => i.disabled = true);
+                    if (enteredPin === correctPin) {
+                        pinInputs.forEach(i => {
+                            i.classList.remove('error-border');
+                            i.classList.add('success-border');
+                        });
+                        sessionStorage.setItem('auth_passed', 'true');
+                        setTimeout(unlockPortal, 600);
+                    } else {
+                        pinContainer.classList.add('error-shake');
+                        pinInputs.forEach(i => i.classList.add('error-border'));
+                        setTimeout(() => {
+                            pinContainer.classList.remove('error-shake');
+                            pinInputs.forEach(i => {
+                                i.value = '';
+                                i.disabled = false;
+                                i.classList.remove('error-border');
+                            });
+                            pinInputs[0].focus();
+                        }, 500);
+                    }
                 }
-                checkPin();
-            });
-        });
+            }
 
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !input.value && index > 0) {
-                pinInputs[index - 1].focus();
-                pinInputs[index - 1].value = '';
+            pinInputs.forEach((input, index) => {
+                ['input', 'change', 'keyup'].forEach(eventType => {
+                    input.addEventListener(eventType, () => {
+                        input.value = input.value.replace(/\D/g, '');
+                        if (input.value && index < pinInputs.length - 1) {
+                            pinInputs[index + 1].focus();
+                        }
+                        checkPin();
+                    });
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        pinInputs[index - 1].focus();
+                        pinInputs[index - 1].value = '';
+                    }
+                });
+            });
+
+            // Фокус на первый инпут при загрузке
+            setTimeout(() => pinInputs[0].focus(), 100);
+
+            function unlockPortal() {
+                pinGate.classList.add('pin-gate-hidden');
+                setTimeout(() => {
+                    pinGate.style.display = 'none';
+                    mainContent.style.display = 'block';
+                    setTimeout(() => mainContent.classList.add('visible'), 50);
+                }, 600);
+            }
+
+            function unlockPortalInstant() {
+                pinGate.style.display = 'none';
+                mainContent.style.display = 'block';
+                mainContent.classList.add('visible');
             }
         });
-    });
-
-    setTimeout(checkPin, 1000);
-
-    function unlockPortal() {
-        pinGate.classList.add('pin-gate-hidden');
-        setTimeout(() => {
-            pinGate.style.display = 'none';
-            mainContent.classList.add('visible');
-        }, 500);
-    }
-});
     </script>
-    
+</body>
+</html>
