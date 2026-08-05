@@ -420,7 +420,6 @@
 
     <!-- Скрипты приложения -->
     <script>
-        <script>
 document.addEventListener('DOMContentLoaded', () => {
     const pinGate = document.getElementById('pin-gate');
     const mainContent = document.getElementById('main-content');
@@ -460,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     pinInputs.forEach((input, index) => {
-        ['input', 'change'].forEach(eventType => {
+        ['input', 'change', 'keyup'].forEach(eventType => {
             input.addEventListener(eventType, () => {
                 input.value = input.value.replace(/\D/g, '');
                 if (input.value && index < pinInputs.length - 1) {
@@ -469,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkPin();
             });
         });
+
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !input.value && index > 0) {
                 pinInputs[index - 1].focus();
@@ -487,7 +487,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
 });
-</script>
+    </script>
     
-
-   
