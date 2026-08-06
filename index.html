@@ -11,11 +11,34 @@
         :root {
             --mts-red: #E30611;
             --mts-dark-red: #b5040d;
+            
+            /* Цвета темной темы (по умолчанию) */
             --bg-deep: #050507;
             --glass-bg: rgba(20, 20, 25, 0.65);
             --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #FFFFFF;
             --text-muted: #94949D;
+            --grid-color: rgba(255, 255, 255, 0.03);
+            --shadow-color: rgba(0, 0, 0, 0.6);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --list-bg: rgba(0, 0, 0, 0.3);
+            --list-badge: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Цвета светлой темы */
+        body.light-theme {
+            --bg-deep: #F2F2F7;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text-main: #1C1C1E;
+            --text-muted: #6C6C70;
+            --grid-color: rgba(0, 0, 0, 0.04);
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --input-bg: rgba(0, 0, 0, 0.03);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --list-bg: rgba(255, 255, 255, 0.5);
+            --list-badge: rgba(0, 0, 0, 0.06);
         }
 
         * {
@@ -26,11 +49,16 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             background-color: var(--bg-deep);
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         /* Анимированный футуристичный фон */
@@ -42,6 +70,7 @@
                         radial-gradient(circle at 90% 80%, rgba(227, 6, 17, 0.08) 0%, transparent 40%),
                         var(--bg-deep);
             overflow: hidden;
+            transition: background 0.4s ease;
         }
 
         .bg-mesh::after {
@@ -49,9 +78,10 @@
             position: absolute;
             width: 200%; height: 200%;
             top: -50%; left: -50%;
-            background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
             background-size: 32px 32px;
             animation: grid-move 60s linear infinite;
+            transition: background-image 0.4s ease;
         }
 
         @keyframes grid-move {
@@ -63,7 +93,7 @@
         #pin-gate {
             position: fixed;
             inset: 0;
-            background: rgba(5, 5, 7, 0.85);
+            background: var(--bg-deep);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
             display: flex;
@@ -84,7 +114,7 @@
             text-align: center;
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(227, 6, 17, 0.1);
+            box-shadow: 0 30px 60px var(--shadow-color), 0 0 40px rgba(227, 6, 17, 0.1);
             animation: card-appear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -106,7 +136,7 @@
             font-size: 20px;
             font-weight: 700;
             margin-bottom: 8px;
-            color: #fff;
+            color: var(--text-main);
         }
 
         .auth-card p {
@@ -125,12 +155,12 @@
         .pin-digit {
             width: 48px;
             height: 60px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
             border-radius: 14px;
             font-size: 24px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             text-align: center;
             outline: none;
             transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -166,14 +196,174 @@
             transform: scale(1.05);
         }
 
-        /* Основной контент сайта */
+        /* --- НАВИГАЦИЯ И ТЕМА --- */
+        .controls-container {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 1000;
+            pointer-events: none; /* Пропускаем клики сквозь контейнер */
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .controls-container.visible {
+            opacity: 1;
+        }
+
+        .icon-btn {
+            pointer-events: auto; /* Возвращаем клики кнопкам */
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(227, 6, 17, 0.4);
+            box-shadow: 0 6px 20px rgba(227, 6, 17, 0.15);
+            color: var(--mts-red);
+        }
+
+        .icon-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+            stroke: currentColor;
+        }
+
+        /* Смена иконок темы */
+        .icon-sun { display: block; fill: none; }
+        .icon-moon { display: none; fill: none; }
+        body.light-theme .icon-sun { display: none; }
+        body.light-theme .icon-moon { display: block; }
+
+        /* Боковое меню (Сайдбар) */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            max-width: 85%;
+            height: 100vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-right: 1px solid var(--glass-border);
+            z-index: 1002;
+            padding: 80px 20px 40px;
+            overflow-y: auto;
+            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 20px 0 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--glass-border);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-list li {
+            margin-bottom: 8px;
+        }
+
+        .nav-list a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            display: block;
+            padding: 12px 16px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            line-height: 1.4;
+        }
+
+        .nav-list a:hover {
+            background: rgba(227, 6, 17, 0.08);
+            color: var(--mts-red);
+            transform: translateX(4px);
+        }
+
+        .close-menu-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-menu-btn:hover {
+            background: rgba(227, 6, 17, 0.1);
+            color: var(--mts-red);
+        }
+
+        .close-menu-btn svg {
+            width: 18px; height: 18px; fill: currentColor;
+        }
+
+
+        /* --- ОСНОВНОЙ КОНТЕНТ (УЧЕБНЫЙ ПОРТАЛ) --- */
         #main-content {
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.8s ease, transform 0.8s ease;
             max-width: 800px;
             margin: 0 auto;
-            padding: 30px 20px;
+            padding: 80px 20px 40px; /* Отступ сверху увеличен для кнопок */
             display: none;
         }
 
@@ -184,25 +374,186 @@
         }
 
         .main-header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            padding: 24px;
-            border-radius: 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 40px;
         }
 
         .main-header h1 {
-            font-size: 24px;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 8px;
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: 900;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: -1px;
         }
 
         .main-header p {
             color: var(--text-muted);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Карточки этапов */
+        .step-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: clamp(24px, 5vw, 40px);
+            margin-bottom: 30px;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+            scroll-margin-top: 90px; /* Отступ при скролле через якоря */
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(227, 6, 17, 0.3);
+            box-shadow: 0 20px 40px var(--shadow-color), 0 0 30px rgba(227, 6, 17, 0.05);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: rgba(227, 6, 17, 0.1);
+            color: var(--mts-red);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-weight: 800;
             font-size: 14px;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+            border: 1px solid rgba(227, 6, 17, 0.2);
+        }
+
+        .step-title {
+            font-size: clamp(20px, 4vw, 26px);
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        .step-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .step-text strong {
+            color: var(--text-main);
+        }
+
+        /* Красивый список для отчета */
+        .report-list {
+            list-style: none;
+            background: var(--list-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .report-list li {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .report-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .report-list b {
+            color: var(--text-main);
+            background: var(--list-badge);
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-right: 10px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        /* Заглушки для Медиа */
+        .media-box {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: #000;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .media-box:hover {
+            border-color: rgba(227, 6, 17, 0.5);
+        }
+
+        .media-video { aspect-ratio: 16 / 9; background: #111; }
+        .media-image { aspect-ratio: 21 / 9; background: #111; }
+
+        .play-button {
+            width: 60px;
+            height: 60px;
+            background: rgba(227, 6, 17, 0.2);
+            border: 2px solid var(--mts-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mts-red);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .play-button::before {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--mts-red);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .play-button svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            margin-left: 4px;
+            z-index: 2;
+            transition: fill 0.3s ease;
+            stroke: none;
+        }
+
+        .media-box:hover .play-button {
+            transform: scale(1.1);
+            background: var(--mts-red);
+            box-shadow: 0 0 20px rgba(227, 6, 17, 0.5);
+        }
+
+        .media-box:hover .play-button svg { fill: #fff; }
+
+        .media-label {
+            position: absolute;
+            bottom: 16px;
+            left: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* Анимации */
@@ -210,12 +561,10 @@
             0% { opacity: 0; transform: translateY(30px) scale(0.95); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-
         @keyframes badge-pulse {
             0%, 100% { box-shadow: 0 10px 25px rgba(227, 6, 17, 0.4); }
             50% { box-shadow: 0 10px 35px rgba(227, 6, 17, 0.7); }
         }
-
         @keyframes shake {
             10%, 90% { transform: translate3d(-2px, 0, 0); }
             20%, 80% { transform: translate3d(4px, 0, 0); }
@@ -228,12 +577,57 @@
 
     <div class="bg-mesh"></div>
 
-    <!-- Экран блокировки с пин-кодом -->
+    <!-- Кнопки управления (Меню и Тема) -->
+    <div class="controls-container" id="controls-container">
+        <!-- Меню три точки -->
+        <button class="icon-btn" id="menu-btn" title="Оглавление">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+        </button>
+
+        <!-- Переключатель темы -->
+        <button class="icon-btn" id="theme-toggle" title="Сменить тему">
+            <svg class="icon-sun" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Боковое меню -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <nav class="sidebar" id="sidebar">
+        <button class="close-menu-btn" id="close-menu">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+        </button>
+        <div class="sidebar-header">Программа дня</div>
+        <ul class="nav-list">
+            <li><a href="#step-1">01. Программа Inventory и расклейка</a></li>
+            <li><a href="#step-2">02. Статистика за месяц</a></li>
+            <li><a href="#step-3">03. Адреса твоей территории</a></li>
+            <li><a href="#step-4">04. Чек-лист рабочего дня</a></li>
+            <li><a href="#step-5">05. Работа в полях: Открытие</a></li>
+            <li><a href="#step-6">06. Визуализация доски</a></li>
+            <li><a href="#step-7">07. Визуализация в подъезде</a></li>
+            <li><a href="#step-8">08. Фотоотчёт</a></li>
+            <li><a href="#step-9">09. Почтовые ящики</a></li>
+            <li><a href="#step-10">10. Закрытие чек-листа</a></li>
+            <li><a href="#step-11">11. Вечерний отчёт</a></li>
+            <li><a href="#step-12">12. Вечерний фотоотчёт</a></li>
+        </ul>
+    </nav>
+
+    <!-- Экран блокировки -->
     <div id="pin-gate">
         <div class="auth-card">
             <div class="mts-badge">МТС</div>
-            <h2>Портал адаптации</h2>
-            <p>Введите 5-значный код доступа агента</p>
+            <h2>Портал стажёра</h2>
+            <p>Введите 5-значный код доступа для старта</p>
             <div class="pin-container" id="pin-container">
                 <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
                 <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
@@ -244,19 +638,241 @@
         </div>
     </div>
 
-    <!-- Основной контент (появится после верного пина) -->
+    <!-- ОСНОВНОЙ КОНТЕНТ (Учебные материалы) -->
     <div id="main-content">
+        
         <div class="main-header">
-            <h1>Добро пожаловать в команду, стажёр!</h1>
-            <p>Система авторизована. Все материалы и инструкции разблокированы.</p>
+            <h1>Стажёр: День 1 | Старт</h1>
+            <p>Добро пожаловать в команду. Здесь собраны все необходимые инструкции и стандарты для успешного старта в полях.</p>
         </div>
-        <!-- Сюда можешь вставлять свои блоки со стажировкой -->
+
+        <div class="step-card" id="step-1">
+            <span class="step-number">01</span>
+            <h3 class="step-title">Стажировочный день: Программа Inventory и расклейка</h3>
+            <div class="step-text">
+                Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением <strong>Inventory</strong>, а также освоим базовые принципы работы на территории.<br><br>
+                Вы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании.
+            </div>
+            <div class="media-box media-image">
+                <div class="media-label">📸 Фото-пример (место для вашего изображения)</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-2">
+            <span class="step-number">02</span>
+            <h3 class="step-title">Программа Inventory: Статистика за месяц</h3>
+            <div class="step-text">
+                Приложение Inventory — это ваш личный кабинет и главный помощник. В этом разделе вы научитесь отслеживать свои результаты.<br><br>
+                <strong>Аналитика:</strong> Следите за количеством пройденных домов и выполненных задач в режиме реального времени.<br>
+                <strong>Прогресс:</strong> Изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии. Контроль цифр — залог высокого дохода.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-3">
+            <span class="step-number">03</span>
+            <h3 class="step-title">Адреса твоей территории</h3>
+            <div class="step-text">
+                В этом блоке мы разбираем, как работать с адресной базой.<br><br>
+                Вы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Четкое следование маршруту экономит ваши силы и увеличивает охват.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-4">
+            <span class="step-number">04</span>
+            <h3 class="step-title">Чек-лист рабочего дня</h3>
+            <div class="step-text">
+                Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист рабочего дня включает в себя все этапы: от планирования рабочего дня до отправки вечернего отчета после его завершения.<br><br>
+                Привычка сверяться с чек-листами поможет вам автоматизировать рутину, избежать ошибок и всегда выполнять работу без замечаний от руководителя.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-5">
+            <span class="step-number">05</span>
+            <h3 class="step-title">Работа в полях: Открытие чек-листа</h3>
+            <div class="step-text">
+                Вы прибыли на адрес — время начинать работу.<br>
+                Подойдя к нужному дому, первым делом откройте чек-лист в приложении. Это действие фиксирует начало вашей работы на конкретном адресе. <strong>Без открытого чек-листа проделанная работа не будет учтена!</strong>
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-6">
+            <span class="step-number">06</span>
+            <h3 class="step-title">Визуализация предподъездной доски</h3>
+            <div class="step-text">
+                Обратите внимание на доску объявлений перед подъездом.<br>
+                Разместите рекламу ровно, аккуратно и на самом видном месте. Убедитесь, что листовка надежно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-7">
+            <span class="step-number">07</span>
+            <h3 class="step-title">Визуализация в подъезде (щитки, коробки)</h3>
+            <div class="step-text">
+                Работа внутри подъезда требует особого внимания. Пройдите по этажам и обратите внимание на места прокладки коммуникаций.<br><br>
+                <strong>Слаботочные щитки и распределительные коробки:</strong> Размещайте листовки строго в отведенных для этого местах.<br>
+                <strong>Трубостойки:</strong> Убедитесь, что визуализация размещена аккуратно и не перекрывает доступ к оборудованию. Ваша листовка должна быть заметна каждому, кто обратит внимание на телекоммуникационные сети дома.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-8">
+            <span class="step-number">08</span>
+            <h3 class="step-title">Фотоотчёт</h3>
+            <div class="step-text">
+                Каждое ваше действие должно быть зафиксировано. Фотография — это подтверждение качества вашей работы. Сфотографируйте каждую листовку.<br><br>
+                Делайте светлые и четкие снимки. В кадр должен полностью попадать размещенный материал и часть окружающего пространства (номер квартиры, этаж или контуры щитка), чтобы можно было легко определить место.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-9">
+            <span class="step-number">09</span>
+            <h3 class="step-title">Почтовые ящики</h3>
+            <div class="step-text">
+                Раскидка листовок по почтовым ящикам — классический и эффективный инструмент.<br>
+                Вкладывайте листовки так, чтобы они не торчали наполовину и не падали на пол. Действуйте системно: ни один ящик не должен быть пропущен, если иное не указано в вашем маршрутном листе. Относитесь к общедомовому имуществу с уважением.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-10">
+            <span class="step-number">10</span>
+            <h3 class="step-title">Закрытие чек-листа</h3>
+            <div class="step-text">
+                Работа в доме завершена только тогда, когда вы закрыли чек-лист в системе.<br>
+                Проверьте, все ли пункты выполнены (предподъездная доска, этажи, ящики, фото). Отметьте в открытом чек листе, в каких подъездах вы разместили рекламу, были ли там листовки конкурентов, и подошёл ли ключ-вездеход к домофону.<br><br>
+                Далее сохраните результат и завершите чек лист. Это зафиксирует время вашей работы и переведет дом в статус «Завершён». Только после этого переходите к следующему адресу.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-11">
+            <span class="step-number">11</span>
+            <h3 class="step-title">Вечерний отчёт за пройденный рабочий день</h3>
+            <div class="step-text">
+                Рабочий день агента заканчивается подведением итогов.<br><br>
+                Вечерний отчет — это сводка вашей активности: сколько домов было пройдено и какие результаты получены. Своевременная отправка отчета позволяет вашему руководителю оценить эффективность дня и помочь вам с планом на завтра.
+            </div>
+            
+            <ul class="report-list">
+                <li><b>В</b> Визуализация (сколько было пройденных квартир при размещении рекламных материалов)</li>
+                <li><b>Дмх</b> Домовой Обход (сколько квартир было пройдено при поквартирном обходе)</li>
+                <li><b>Од</b> Открытые двери (сколько дверей было открыто при поквартирном обходе)</li>
+                <li><b>Вхз</b> Входяшка (сколько раз тебе позвонили на твой виртуальный номер по листовке)</li>
+                <li><b>Птнц</b> Потенциальный абонент (человек, который дал тебе свой контактный номер для дальнейшего подключения)</li>
+                <li><b>П</b> Продажи (измеряется в услугах: конвергент - 2 услуги, допрадажа - 1 услуга)</li>
+                <li><b>Пр</b> Продажа роутера (сколько ты продал роутеров)</li>
+                <li><b>Пс</b> Продажа приставки (сколько ты продал приставок)</li>
+            </ul>
+            
+            <div class="step-text">
+                <em>* В отчете также необходимо написать список домов, которые ты прошел за день.</em>
+            </div>
+
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
+        <div class="step-card" id="step-12">
+            <span class="step-number">12</span>
+            <h3 class="step-title">Вечерний фотоотчёт</h3>
+            <div class="step-text">
+                Финальный этап смены — фотоотчет.<br>
+                Вам необходимо загрузить все сделанные за день фотографии визуализации (доски, щитки, распределительные коробки) в специальный чат. Убедитесь, что фотографии подписаны по нужным адресам, загрузились без ошибок и соответствуют регламенту, который находится в закреплённом сообщении.<br><br>
+                Качественный фотоотчет гарантирует отсутствие вопросов к проделанной работе.
+            </div>
+            <div class="media-box media-video">
+                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                <div class="media-label">▶ Видеоинструкция</div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // ЛОГИКА ТЕМЫ (СОХРАНЕНИЕ В БРАУЗЕРЕ)
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const savedTheme = localStorage.getItem('mts-theme');
+            
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('light-theme');
+                if (document.body.classList.contains('light-theme')) {
+                    localStorage.setItem('mts-theme', 'light');
+                } else {
+                    localStorage.setItem('mts-theme', 'dark');
+                }
+            });
+
+            // ЛОГИКА БОКОВОГО МЕНЮ
+            const menuBtn = document.getElementById('menu-btn');
+            const closeMenuBtn = document.getElementById('close-menu');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const navLinks = document.querySelectorAll('.nav-list a');
+
+            function openMenu() {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+            }
+
+            function closeMenu() {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+
+            menuBtn.addEventListener('click', openMenu);
+            closeMenuBtn.addEventListener('click', closeMenu);
+            overlay.addEventListener('click', closeMenu);
+
+            // Закрываем меню при клике на любую ссылку в нем
+            navLinks.forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+
+
+            // ЛОГИКА АВТОРИЗАЦИИ (ПИН-КОД 79124)
             const pinGate = document.getElementById('pin-gate');
             const mainContent = document.getElementById('main-content');
+            const controls = document.getElementById('controls-container');
             const pinInputs = document.querySelectorAll('.pin-digit');
             const pinContainer = document.getElementById('pin-container');
             const correctPin = '79124';
@@ -311,7 +927,6 @@
                 });
             });
 
-            // Фокус на первый инпут при загрузке
             setTimeout(() => pinInputs[0].focus(), 100);
 
             function unlockPortal() {
@@ -319,7 +934,10 @@
                 setTimeout(() => {
                     pinGate.style.display = 'none';
                     mainContent.style.display = 'block';
-                    setTimeout(() => mainContent.classList.add('visible'), 50);
+                    setTimeout(() => {
+                        mainContent.classList.add('visible');
+                        controls.classList.add('visible'); // Показываем кнопки после ввода пинкода
+                    }, 50);
                 }, 600);
             }
 
@@ -327,6 +945,7 @@
                 pinGate.style.display = 'none';
                 mainContent.style.display = 'block';
                 mainContent.classList.add('visible');
+                controls.classList.add('visible');
             }
         });
     </script>
