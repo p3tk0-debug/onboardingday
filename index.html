@@ -1,953 +1,647 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>МТС | Портал обучения агентов</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <title>Стажерский Портал ПП | МТС</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* === ПЕРЕМЕННЫЕ И ТЕМЫ === */
         :root {
+            /* Темная тема (по умолчанию) */
+            --bg-main: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-glass: rgba(20, 20, 20, 0.6);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
             --mts-red: #E30611;
-            --mts-dark-red: #b5040d;
-            
-            /* Цвета темной темы (по умолчанию) */
-            --bg-deep: #050507;
-            --glass-bg: rgba(20, 20, 25, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #FFFFFF;
-            --text-muted: #94949D;
-            --grid-color: rgba(255, 255, 255, 0.03);
-            --shadow-color: rgba(0, 0, 0, 0.6);
-            --input-bg: rgba(0, 0, 0, 0.4);
-            --input-border: rgba(255, 255, 255, 0.1);
-            --list-bg: rgba(0, 0, 0, 0.3);
-            --list-badge: rgba(255, 255, 255, 0.1);
+            --mts-red-glow: rgba(227, 6, 17, 0.5);
+            --mts-red-hover: #ff1a26;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Цвета светлой темы */
-        body.light-theme {
-            --bg-deep: #F2F2F7;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(0, 0, 0, 0.08);
-            --text-main: #1C1C1E;
-            --text-muted: #6C6C70;
-            --grid-color: rgba(0, 0, 0, 0.04);
-            --shadow-color: rgba(0, 0, 0, 0.05);
+        [data-theme="light"] {
+            /* Светлая тема */
+            --bg-main: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --text-main: #1d1d1f;
+            --text-muted: #6e6e73;
+            --mts-red: #E30611;
+            --mts-red-glow: rgba(227, 6, 17, 0.3);
+            --mts-red-hover: #cc050f;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --card-bg: rgba(255, 255, 255, 1);
             --input-bg: rgba(0, 0, 0, 0.03);
-            --input-border: rgba(0, 0, 0, 0.1);
-            --list-bg: rgba(255, 255, 255, 0.5);
-            --list-badge: rgba(0, 0, 0, 0.06);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
         }
 
+        /* === БАЗОВЫЕ СТИЛИ === */
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html {
-            scroll-behavior: smooth;
+            transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
         }
 
         body {
-            background-color: var(--bg-deep);
+            background-color: var(--bg-main);
             color: var(--text-main);
-            min-height: 100vh;
             overflow-x: hidden;
-            transition: background-color 0.4s ease, color 0.4s ease;
+            min-height: 100vh;
+            position: relative;
         }
 
         /* Анимированный футуристичный фон */
-        .bg-mesh {
+        .bg-glow {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--mts-red-glow) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            border-radius: 50%;
             z-index: -1;
-            background: radial-gradient(circle at 10% 20%, rgba(227, 6, 17, 0.12) 0%, transparent 40%),
-                        radial-gradient(circle at 90% 80%, rgba(227, 6, 17, 0.08) 0%, transparent 40%),
-                        var(--bg-deep);
-            overflow: hidden;
-            transition: background 0.4s ease;
+            filter: blur(80px);
+            animation: pulse 10s infinite alternate;
+        }
+        .bg-glow-2 {
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(227, 6, 17, 0.15) 0%, transparent 70%);
+            bottom: -100px;
+            left: -200px;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(60px);
+            animation: pulse 8s infinite alternate-reverse;
         }
 
-        .bg-mesh::after {
-            content: '';
-            position: absolute;
-            width: 200%; height: 200%;
-            top: -50%; left: -50%;
-            background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
-            background-size: 32px 32px;
-            animation: grid-move 60s linear infinite;
-            transition: background-image 0.4s ease;
+        @keyframes pulse {
+            0% { transform: scale(0.8) translate(0, 0); opacity: 0.5; }
+            100% { transform: scale(1.2) translate(-50px, 50px); opacity: 1; }
         }
 
-        @keyframes grid-move {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(32px, 32px); }
-        }
-
-        /* Экран блокировки (PIN Gate) */
-        #pin-gate {
+        /* === ЭКРАН ВХОДА === */
+        #login-screen {
             position: fixed;
             inset: 0;
-            background: var(--bg-deep);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 0.6s cubic-bezier(0.8, 0, 0.2, 1), visibility 0.6s;
-        }
-
-        .auth-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid var(--glass-border);
-            border-top: 3px solid var(--mts-red);
-            padding: 40px 32px;
-            border-radius: 28px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 30px 60px var(--shadow-color), 0 0 40px rgba(227, 6, 17, 0.1);
-            animation: card-appear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .mts-badge {
-            background: linear-gradient(135deg, var(--mts-red), var(--mts-dark-red));
-            color: #fff;
-            font-weight: 900;
-            font-size: 24px;
-            padding: 10px 20px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 24px;
-            box-shadow: 0 10px 25px rgba(227, 6, 17, 0.4);
-            letter-spacing: 1px;
-            animation: badge-pulse 3s infinite ease-in-out;
-        }
-
-        .auth-card h2 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-
-        .auth-card p {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 32px;
-            line-height: 1.5;
-        }
-
-        .pin-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .pin-digit {
-            width: 48px;
-            height: 60px;
-            background: var(--input-bg);
-            border: 2px solid var(--input-border);
-            border-radius: 14px;
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-main);
-            text-align: center;
-            outline: none;
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        .pin-digit:focus {
-            border-color: var(--mts-red);
-            background: rgba(227, 6, 17, 0.05);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(227, 6, 17, 0.3);
-        }
-
-        .pin-digit.success-border {
-            border-color: #00C853;
-            background: rgba(0, 200, 83, 0.1);
-            color: #00C853;
-        }
-
-        .pin-digit.error-border {
-            border-color: var(--mts-red);
-            color: var(--mts-red);
-            background: rgba(227, 6, 17, 0.15);
-        }
-
-        .error-shake {
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        .pin-gate-hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            transform: scale(1.05);
-        }
-
-        /* --- НАВИГАЦИЯ И ТЕМА --- */
-        .controls-container {
-            position: fixed;
-            top: 20px;
-            left: 0;
-            width: 100%;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
+            background: var(--bg-main);
             z-index: 1000;
-            pointer-events: none; /* Пропускаем клики сквозь контейнер */
-            opacity: 0;
-            transition: opacity 0.8s ease;
+            padding: 20px;
+            transition: opacity 0.5s ease, visibility 0.5s;
         }
 
-        .controls-container.visible {
-            opacity: 1;
+        .login-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transform: translateY(0);
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .icon-btn {
-            pointer-events: auto; /* Возвращаем клики кнопкам */
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+        }
+
+        .mts-logo-box {
+            background: var(--mts-red);
+            color: white;
+            font-size: 36px;
+            font-weight: 800;
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            box-shadow: 0 0 20px var(--mts-red-glow);
+        }
+
+        .portal-title {
+            font-size: 20px;
+            font-weight: 600;
             color: var(--text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--mts-red);
+            box-shadow: 0 0 15px var(--mts-red-glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: var(--mts-red);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
         }
 
-        .icon-btn:hover {
+        .btn:hover {
+            background: var(--mts-red-hover);
             transform: translateY(-2px);
-            border-color: rgba(227, 6, 17, 0.4);
-            box-shadow: 0 6px 20px rgba(227, 6, 17, 0.15);
-            color: var(--mts-red);
+            box-shadow: 0 5px 15px var(--mts-red-glow);
         }
 
-        .icon-btn svg {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-            stroke: currentColor;
+        /* === ОСНОВНОЙ ИНТЕРФЕЙС === */
+        #app-screen {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            min-height: 100vh;
+            padding-bottom: 50px;
         }
 
-        /* Смена иконок темы */
-        .icon-sun { display: block; fill: none; }
-        .icon-moon { display: none; fill: none; }
-        body.light-theme .icon-sun { display: none; }
-        body.light-theme .icon-moon { display: block; }
+        header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
 
-        /* Боковое меню (Сайдбар) */
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            z-index: 1001;
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-logo .mts-logo-box {
+            font-size: 20px;
+            padding: 5px 12px;
+            margin-bottom: 0;
+            border-radius: 8px;
+        }
+
+        .user-greeting {
+            font-weight: 600;
+            display: none; /* Скрыто на мобилках */
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Переключатель темы */
+        .theme-switch {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+        .theme-switch:hover {
+            border-color: var(--mts-red);
+        }
+
+        /* Три точки (Меню) */
+        .menu-dots {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px;
+            position: relative;
+        }
+        .menu-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--text-main);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .menu-dots:hover span {
+            background: var(--mts-red);
+        }
+
+        /* Выпадающее меню */
+        .dropdown {
+            position: absolute;
+            top: 60px;
+            right: 5%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 250px;
+            box-shadow: var(--shadow);
+            transform: translateY(-10px);
             opacity: 0;
             visibility: hidden;
-            transition: all 0.4s ease;
+            transition: all 0.3s ease;
+            z-index: 200;
+            overflow: hidden;
         }
-
-        .sidebar-overlay.active {
+        .dropdown.active {
+            transform: translateY(0);
             opacity: 1;
             visibility: visible;
         }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -320px;
-            width: 300px;
-            max-width: 85%;
-            height: 100vh;
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-right: 1px solid var(--glass-border);
-            z-index: 1002;
-            padding: 80px 20px 40px;
-            overflow-y: auto;
-            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 20px 0 50px rgba(0, 0, 0, 0.3);
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--glass-border);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .nav-list {
-            list-style: none;
-        }
-
-        .nav-list li {
-            margin-bottom: 8px;
-        }
-
-        .nav-list a {
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 600;
-            display: block;
-            padding: 12px 16px;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            line-height: 1.4;
-        }
-
-        .nav-list a:hover {
-            background: rgba(227, 6, 17, 0.08);
-            color: var(--mts-red);
-            transform: translateX(4px);
-        }
-
-        .close-menu-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            border: none;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .dropdown-item {
+            padding: 15px 20px;
             cursor: pointer;
-            transition: all 0.2s;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+            transition: background 0.3s;
         }
-
-        .close-menu-btn:hover {
-            background: rgba(227, 6, 17, 0.1);
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-item:hover, .dropdown-item.active {
+            background: var(--card-bg);
             color: var(--mts-red);
+            border-left: 3px solid var(--mts-red);
         }
-
-        .close-menu-btn svg {
-            width: 18px; height: 18px; fill: currentColor;
-        }
-
-
-        /* --- ОСНОВНОЙ КОНТЕНТ (УЧЕБНЫЙ ПОРТАЛ) --- */
-        #main-content {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 80px 20px 40px; /* Отступ сверху увеличен для кнопок */
+        
+        #admin-tab-btn {
             display: none;
+            color: #b000ff; /* Спец цвет для админа */
+        }
+        #admin-tab-btn:hover, #admin-tab-btn.active {
+            color: #b000ff;
+            border-left: 3px solid #b000ff;
         }
 
-        #main-content.visible {
-            opacity: 1;
-            transform: translateY(0);
+        /* === КОНТЕНТНАЯ ЧАСТЬ === */
+        main {
+            padding: 40px 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        .tab-content.active {
             display: block;
         }
 
-        .main-header {
-            text-align: center;
-            margin-bottom: 40px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .main-header h1 {
-            font-size: clamp(28px, 5vw, 42px);
-            font-weight: 900;
-            color: var(--text-main);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-        }
-
-        .main-header p {
-            color: var(--text-muted);
-            font-size: 16px;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        /* Карточки этапов */
-        .step-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: clamp(24px, 5vw, 40px);
+        .page-title {
+            font-size: 32px;
+            font-weight: 800;
             margin-bottom: 30px;
-            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
-            scroll-margin-top: 90px; /* Отступ при скролле через якоря */
+            color: var(--mts-red);
+            text-transform: uppercase;
         }
 
+        /* Карточки контента */
+        .step-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
         .step-card:hover {
             transform: translateY(-5px);
-            border-color: rgba(227, 6, 17, 0.3);
-            box-shadow: 0 20px 40px var(--shadow-color), 0 0 30px rgba(227, 6, 17, 0.05);
+            border-color: var(--mts-red-glow);
+            box-shadow: 0 15px 40px rgba(227, 6, 17, 0.1);
         }
 
         .step-number {
-            display: inline-block;
-            background: rgba(227, 6, 17, 0.1);
-            color: var(--mts-red);
-            padding: 6px 16px;
-            border-radius: 100px;
-            font-weight: 800;
-            font-size: 14px;
-            margin-bottom: 16px;
-            letter-spacing: 1px;
-            border: 1px solid rgba(227, 6, 17, 0.2);
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 100px;
+            font-weight: 900;
+            color: var(--text-muted);
+            opacity: 0.1;
+            line-height: 1;
+            pointer-events: none;
         }
 
         .step-title {
-            font-size: clamp(20px, 4vw, 26px);
+            font-size: 22px;
             font-weight: 700;
+            margin-bottom: 15px;
             color: var(--text-main);
-            margin-bottom: 16px;
-            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .step-title::before {
+            content: '';
+            display: block;
+            width: 12px;
+            height: 12px;
+            background: var(--mts-red);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--mts-red);
         }
 
         .step-text {
-            font-size: 15px;
-            line-height: 1.7;
+            font-size: 16px;
+            line-height: 1.6;
             color: var(--text-muted);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .step-text strong {
             color: var(--text-main);
         }
 
-        /* Красивый список для отчета */
-        .report-list {
+        /* Списки сокращений (Пункт 11) */
+        .abbr-list {
             list-style: none;
-            background: var(--list-bg);
-            border-radius: 16px;
+            margin-top: 15px;
+            background: var(--input-bg);
             padding: 20px;
-            margin-bottom: 24px;
-            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            border-left: 4px solid var(--mts-red);
         }
-
-        .report-list li {
-            margin-bottom: 12px;
-            font-size: 14px;
+        .abbr-list li {
+            margin-bottom: 10px;
+            font-size: 15px;
             color: var(--text-muted);
-            line-height: 1.5;
-            display: flex;
-            align-items: flex-start;
         }
-
-        .report-list li:last-child {
-            margin-bottom: 0;
-        }
-
-        .report-list b {
+        .abbr-list li span {
+            font-weight: 700;
             color: var(--text-main);
-            background: var(--list-badge);
-            padding: 2px 8px;
-            border-radius: 6px;
-            margin-right: 10px;
-            font-size: 13px;
-            white-space: nowrap;
+            display: inline-block;
+            width: 50px;
         }
 
-        /* Заглушки для Медиа */
-        .media-box {
+        /* === МЕДИА ПЛЕЙСХОЛДЕРЫ === */
+        .media-container {
             width: 100%;
+            background: #000;
             border-radius: 16px;
             overflow: hidden;
             position: relative;
-            background: #000;
-            border: 1px solid var(--glass-border);
             display: flex;
-            align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .media-box:hover {
-            border-color: rgba(227, 6, 17, 0.5);
-        }
-
-        .media-video { aspect-ratio: 16 / 9; background: #111; }
-        .media-image { aspect-ratio: 21 / 9; background: #111; }
-
-        .play-button {
-            width: 60px;
-            height: 60px;
-            background: rgba(227, 6, 17, 0.2);
-            border: 2px solid var(--mts-red);
-            border-radius: 50%;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            color: var(--mts-red);
-            transition: all 0.3s ease;
-            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-
-        .play-button::before {
+        
+        .media-container::after {
             content: '';
             position: absolute;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            background: var(--mts-red);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1;
+            inset: 0;
+            background: linear-gradient(45deg, rgba(227,6,17,0.2) 0%, transparent 100%);
+            pointer-events: none;
         }
 
-        .play-button svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-            margin-left: 4px;
+        .media-16-9 {
+            aspect-ratio: 16 / 9;
+        }
+
+        .media-9-16 {
+            aspect-ratio: 9 / 16;
+            max-width: 350px;
+            margin: 0 auto; /* По центру */
+        }
+
+        .media-icon {
+            font-size: 40px;
+            color: rgba(255,255,255,0.5);
             z-index: 2;
-            transition: fill 0.3s ease;
-            stroke: none;
         }
 
-        .media-box:hover .play-button {
-            transform: scale(1.1);
+        .video-play {
+            width: 60px;
+            height: 60px;
             background: var(--mts-red);
-            box-shadow: 0 0 20px rgba(227, 6, 17, 0.5);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--mts-red-glow);
+            transition: transform 0.3s;
+        }
+        .video-play:hover {
+            transform: scale(1.1);
+        }
+        .video-play::before {
+            content: '';
+            display: block;
+            border-style: solid;
+            border-width: 10px 0 10px 16px;
+            border-color: transparent transparent transparent white;
+            margin-left: 5px;
         }
 
-        .media-box:hover .play-button svg { fill: #fff; }
-
-        .media-label {
-            position: absolute;
-            bottom: 16px;
-            left: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            opacity: 0.7;
+        /* === АДМИН ПАНЕЛЬ === */
+        .admin-table-wrapper {
+            overflow-x: auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .admin-table th, .admin-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .admin-table th {
+            font-weight: 700;
+            color: var(--text-main);
+            background: var(--input-bg);
+        }
+        .admin-table tr:last-child td {
+            border-bottom: none;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+        }
+        .status-online {
+            background: rgba(0, 200, 83, 0.2);
+            color: #00e676;
+        }
+        .status-offline {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff1744;
         }
 
-        /* Анимации */
-        @keyframes card-appear {
-            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+        /* === ПУСТЫЕ СОСТОЯНИЯ === */
+        .empty-state {
+            text-align: center;
+            padding: 100px 20px;
+            color: var(--text-muted);
         }
-        @keyframes badge-pulse {
-            0%, 100% { box-shadow: 0 10px 25px rgba(227, 6, 17, 0.4); }
-            50% { box-shadow: 0 10px 35px rgba(227, 6, 17, 0.7); }
+        .empty-state h2 {
+            color: var(--text-main);
+            margin-bottom: 15px;
         }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
+
+        /* === АДАПТИВНОСТЬ === */
+        @media (min-width: 768px) {
+            .user-greeting { display: block; }
+        }
+        @media (max-width: 768px) {
+            .page-title { font-size: 24px; }
+            .step-title { font-size: 18px; }
+            .step-text { font-size: 14px; }
+            .mts-logo-box { font-size: 28px; }
+            .media-9-16 { max-width: 100%; border-radius: 12px; }
+        }
+
+        /* Иконки SVG */
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-mesh"></div>
+    <!-- Анимированный фон -->
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
 
-    <!-- Кнопки управления (Меню и Тема) -->
-    <div class="controls-container" id="controls-container">
-        <!-- Меню три точки -->
-        <button class="icon-btn" id="menu-btn" title="Оглавление">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-            </svg>
-        </button>
-
-        <!-- Переключатель темы -->
-        <button class="icon-btn" id="theme-toggle" title="Сменить тему">
-            <svg class="icon-sun" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-            <svg class="icon-moon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-        </button>
-    </div>
-
-    <!-- Боковое меню -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-    <nav class="sidebar" id="sidebar">
-        <button class="close-menu-btn" id="close-menu">
-            <svg viewBox="0 0 24 24">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-            </svg>
-        </button>
-        <div class="sidebar-header">Программа дня</div>
-        <ul class="nav-list">
-            <li><a href="#step-1">01. Программа Inventory и расклейка</a></li>
-            <li><a href="#step-2">02. Статистика за месяц</a></li>
-            <li><a href="#step-3">03. Адреса твоей территории</a></li>
-            <li><a href="#step-4">04. Чек-лист рабочего дня</a></li>
-            <li><a href="#step-5">05. Работа в полях: Открытие</a></li>
-            <li><a href="#step-6">06. Визуализация доски</a></li>
-            <li><a href="#step-7">07. Визуализация в подъезде</a></li>
-            <li><a href="#step-8">08. Фотоотчёт</a></li>
-            <li><a href="#step-9">09. Почтовые ящики</a></li>
-            <li><a href="#step-10">10. Закрытие чек-листа</a></li>
-            <li><a href="#step-11">11. Вечерний отчёт</a></li>
-            <li><a href="#step-12">12. Вечерний фотоотчёт</a></li>
-        </ul>
-    </nav>
-
-    <!-- Экран блокировки -->
-    <div id="pin-gate">
-        <div class="auth-card">
-            <div class="mts-badge">МТС</div>
-            <h2>Портал стажёра</h2>
-            <p>Введите 5-значный код доступа для старта</p>
-            <div class="pin-container" id="pin-container">
-                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
-                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
-                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
-                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
-                <input type="password" inputmode="numeric" class="pin-digit" maxlength="1" autocomplete="off">
+    <!-- === ЭКРАН ВХОДА === -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="logo-container">
+                <div class="mts-logo-box">МТС</div>
+                <div class="portal-title">Стажерский Портал ПП</div>
             </div>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Фамилия</label>
+                    <input type="text" id="lastName" placeholder="Введите фамилию" required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label>Имя</label>
+                    <input type="text" id="firstName" placeholder="Введите имя" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn">Войти в портал</button>
+            </form>
         </div>
     </div>
 
-    <!-- ОСНОВНОЙ КОНТЕНТ (Учебные материалы) -->
-    <div id="main-content">
-        
-        <div class="main-header">
-            <h1>Стажёр: День 1 | Старт</h1>
-            <p>Добро пожаловать в команду. Здесь собраны все необходимые инструкции и стандарты для успешного старта в полях.</p>
-        </div>
-
-        <div class="step-card" id="step-1">
-            <span class="step-number">01</span>
-            <h3 class="step-title">Стажировочный день: Программа Inventory и расклейка</h3>
-            <div class="step-text">
-                Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением <strong>Inventory</strong>, а также освоим базовые принципы работы на территории.<br><br>
-                Вы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании.
-            </div>
-            <div class="media-box media-image">
-                <div class="media-label">📸 Фото-пример (место для вашего изображения)</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-2">
-            <span class="step-number">02</span>
-            <h3 class="step-title">Программа Inventory: Статистика за месяц</h3>
-            <div class="step-text">
-                Приложение Inventory — это ваш личный кабинет и главный помощник. В этом разделе вы научитесь отслеживать свои результаты.<br><br>
-                <strong>Аналитика:</strong> Следите за количеством пройденных домов и выполненных задач в режиме реального времени.<br>
-                <strong>Прогресс:</strong> Изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии. Контроль цифр — залог высокого дохода.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-3">
-            <span class="step-number">03</span>
-            <h3 class="step-title">Адреса твоей территории</h3>
-            <div class="step-text">
-                В этом блоке мы разбираем, как работать с адресной базой.<br><br>
-                Вы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Четкое следование маршруту экономит ваши силы и увеличивает охват.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-4">
-            <span class="step-number">04</span>
-            <h3 class="step-title">Чек-лист рабочего дня</h3>
-            <div class="step-text">
-                Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист рабочего дня включает в себя все этапы: от планирования рабочего дня до отправки вечернего отчета после его завершения.<br><br>
-                Привычка сверяться с чек-листами поможет вам автоматизировать рутину, избежать ошибок и всегда выполнять работу без замечаний от руководителя.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-5">
-            <span class="step-number">05</span>
-            <h3 class="step-title">Работа в полях: Открытие чек-листа</h3>
-            <div class="step-text">
-                Вы прибыли на адрес — время начинать работу.<br>
-                Подойдя к нужному дому, первым делом откройте чек-лист в приложении. Это действие фиксирует начало вашей работы на конкретном адресе. <strong>Без открытого чек-листа проделанная работа не будет учтена!</strong>
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-6">
-            <span class="step-number">06</span>
-            <h3 class="step-title">Визуализация предподъездной доски</h3>
-            <div class="step-text">
-                Обратите внимание на доску объявлений перед подъездом.<br>
-                Разместите рекламу ровно, аккуратно и на самом видном месте. Убедитесь, что листовка надежно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-7">
-            <span class="step-number">07</span>
-            <h3 class="step-title">Визуализация в подъезде (щитки, коробки)</h3>
-            <div class="step-text">
-                Работа внутри подъезда требует особого внимания. Пройдите по этажам и обратите внимание на места прокладки коммуникаций.<br><br>
-                <strong>Слаботочные щитки и распределительные коробки:</strong> Размещайте листовки строго в отведенных для этого местах.<br>
-                <strong>Трубостойки:</strong> Убедитесь, что визуализация размещена аккуратно и не перекрывает доступ к оборудованию. Ваша листовка должна быть заметна каждому, кто обратит внимание на телекоммуникационные сети дома.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-8">
-            <span class="step-number">08</span>
-            <h3 class="step-title">Фотоотчёт</h3>
-            <div class="step-text">
-                Каждое ваше действие должно быть зафиксировано. Фотография — это подтверждение качества вашей работы. Сфотографируйте каждую листовку.<br><br>
-                Делайте светлые и четкие снимки. В кадр должен полностью попадать размещенный материал и часть окружающего пространства (номер квартиры, этаж или контуры щитка), чтобы можно было легко определить место.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-9">
-            <span class="step-number">09</span>
-            <h3 class="step-title">Почтовые ящики</h3>
-            <div class="step-text">
-                Раскидка листовок по почтовым ящикам — классический и эффективный инструмент.<br>
-                Вкладывайте листовки так, чтобы они не торчали наполовину и не падали на пол. Действуйте системно: ни один ящик не должен быть пропущен, если иное не указано в вашем маршрутном листе. Относитесь к общедомовому имуществу с уважением.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-10">
-            <span class="step-number">10</span>
-            <h3 class="step-title">Закрытие чек-листа</h3>
-            <div class="step-text">
-                Работа в доме завершена только тогда, когда вы закрыли чек-лист в системе.<br>
-                Проверьте, все ли пункты выполнены (предподъездная доска, этажи, ящики, фото). Отметьте в открытом чек листе, в каких подъездах вы разместили рекламу, были ли там листовки конкурентов, и подошёл ли ключ-вездеход к домофону.<br><br>
-                Далее сохраните результат и завершите чек лист. Это зафиксирует время вашей работы и переведет дом в статус «Завершён». Только после этого переходите к следующему адресу.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
-
-        <div class="step-card" id="step-11">
-            <span class="step-number">11</span>
-            <h3 class="step-title">Вечерний отчёт за пройденный рабочий день</h3>
-            <div class="step-text">
-                Рабочий день агента заканчивается подведением итогов.<br><br>
-                Вечерний отчет — это сводка вашей активности: сколько домов было пройдено и какие результаты получены. Своевременная отправка отчета позволяет вашему руководителю оценить эффективность дня и помочь вам с планом на завтра.
+    <!-- === ОСНОВНОЙ ИНТЕРФЕЙС === -->
+    <div id="app-screen">
+        <header>
+            <div class="header-logo">
+                <div class="mts-logo-box">МТС</div>
+                <div class="user-greeting" id="greeting-text">Привет, Стажер</div>
             </div>
             
-            <ul class="report-list">
-                <li><b>В</b> Визуализация (сколько было пройденных квартир при размещении рекламных материалов)</li>
-                <li><b>Дмх</b> Домовой Обход (сколько квартир было пройдено при поквартирном обходе)</li>
-                <li><b>Од</b> Открытые двери (сколько дверей было открыто при поквартирном обходе)</li>
-                <li><b>Вхз</b> Входяшка (сколько раз тебе позвонили на твой виртуальный номер по листовке)</li>
-                <li><b>Птнц</b> Потенциальный абонент (человек, который дал тебе свой контактный номер для дальнейшего подключения)</li>
-                <li><b>П</b> Продажи (измеряется в услугах: конвергент - 2 услуги, допрадажа - 1 услуга)</li>
-                <li><b>Пр</b> Продажа роутера (сколько ты продал роутеров)</li>
-                <li><b>Пс</b> Продажа приставки (сколько ты продал приставок)</li>
-            </ul>
-            
-            <div class="step-text">
-                <em>* В отчете также необходимо написать список домов, которые ты прошел за день.</em>
+            <div class="header-controls">
+                <div class="theme-switch" id="theme-toggle" title="Переключить тему">
+                    <!-- Иконка луны -->
+                    <svg class="icon moon-icon" viewBox="0 0 24 24" id="theme-icon">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </div>
+                
+                <div class="menu-dots" id="menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
 
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
+            <!-- Выпадающее меню (Каталоги) -->
+            <div class="dropdown" id="dropdown-menu">
+                <div class="dropdown-item active" data-target="tab-trainee">Агент стажёр</div>
+                <div class="dropdown-item" data-target="tab-incoming">Входящий вызов</div>
+                <div class="dropdown-item" data-target="tab-door">Поквартирный обход</div>
+                <div class="dropdown-item" data-target="tab-contest">Конкурс</div>
+                <div class="dropdown-item" id="admin-tab-btn" data-target="tab-admin">👑 Личный Кабинет (Админ)</div>
+                <div class="dropdown-item" id="logout-btn" style="color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 5px;">Выйти</div>
             </div>
-        </div>
+        </header>
 
-        <div class="step-card" id="step-12">
-            <span class="step-number">12</span>
-            <h3 class="step-title">Вечерний фотоотчёт</h3>
-            <div class="step-text">
-                Финальный этап смены — фотоотчет.<br>
-                Вам необходимо загрузить все сделанные за день фотографии визуализации (доски, щитки, распределительные коробки) в специальный чат. Убедитесь, что фотографии подписаны по нужным адресам, загрузились без ошибок и соответствуют регламенту, который находится в закреплённом сообщении.<br><br>
-                Качественный фотоотчет гарантирует отсутствие вопросов к проделанной работе.
-            </div>
-            <div class="media-box media-video">
-                <div class="play-button"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                <div class="media-label">▶ Видеоинструкция</div>
-            </div>
-        </div>
+        <main>
+            <!-- КАТАЛОГ 1: АГЕНТ СТАЖЁР -->
+            <section id="tab-trainee" class="tab-content active">
+                <h1 class="page-title">Обучающий курс</h1>
 
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // ЛОГИКА ТЕМЫ (СОХРАНЕНИЕ В БРАУЗЕРЕ)
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const savedTheme = localStorage.getItem('mts-theme');
-            
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
-            }
-
-            themeToggleBtn.addEventListener('click', () => {
-                document.body.classList.toggle('light-theme');
-                if (document.body.classList.contains('light-theme')) {
-                    localStorage.setItem('mts-theme', 'light');
-                } else {
-                    localStorage.setItem('mts-theme', 'dark');
-                }
-            });
-
-            // ЛОГИКА БОКОВОГО МЕНЮ
-            const menuBtn = document.getElementById('menu-btn');
-            const closeMenuBtn = document.getElementById('close-menu');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const navLinks = document.querySelectorAll('.nav-list a');
-
-            function openMenu() {
-                sidebar.classList.add('active');
-                overlay.classList.add('active');
-            }
-
-            function closeMenu() {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-
-            menuBtn.addEventListener('click', openMenu);
-            closeMenuBtn.addEventListener('click', closeMenu);
-            overlay.addEventListener('click', closeMenu);
-
-            // Закрываем меню при клике на любую ссылку в нем
-            navLinks.forEach(link => {
-                link.addEventListener('click', closeMenu);
-            });
-
-
-            // ЛОГИКА АВТОРИЗАЦИИ (ПИН-КОД 79124)
-            const pinGate = document.getElementById('pin-gate');
-            const mainContent = document.getElementById('main-content');
-            const controls = document.getElementById('controls-container');
-            const pinInputs = document.querySelectorAll('.pin-digit');
-            const pinContainer = document.getElementById('pin-container');
-            const correctPin = '79124';
-
-            if (sessionStorage.getItem('auth_passed') === 'true') {
-                unlockPortalInstant();
-            }
-
-            function checkPin() {
-                const enteredPin = Array.from(pinInputs).map(i => i.value).join('');
-                if (enteredPin.length === 5) {
-                    pinInputs.forEach(i => i.disabled = true);
-                    if (enteredPin === correctPin) {
-                        pinInputs.forEach(i => {
-                            i.classList.remove('error-border');
-                            i.classList.add('success-border');
-                        });
-                        sessionStorage.setItem('auth_passed', 'true');
-                        setTimeout(unlockPortal, 600);
-                    } else {
-                        pinContainer.classList.add('error-shake');
-                        pinInputs.forEach(i => i.classList.add('error-border'));
-                        setTimeout(() => {
-                            pinContainer.classList.remove('error-shake');
-                            pinInputs.forEach(i => {
-                                i.value = '';
-                                i.disabled = false;
-                                i.classList.remove('error-border');
-                            });
-                            pinInputs[0].focus();
-                        }, 500);
-                    }
-                }
-            }
-
-            pinInputs.forEach((input, index) => {
-                ['input', 'change', 'keyup'].forEach(eventType => {
-                    input.addEventListener(eventType, () => {
-                        input.value = input.value.replace(/\D/g, '');
-                        if (input.value && index < pinInputs.length - 1) {
-                            pinInputs[index + 1].focus();
-                        }
-                        checkPin();
-                    });
-                });
-
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && !input.value && index > 0) {
-                        pinInputs[index - 1].focus();
-                        pinInputs[index - 1].value = '';
-                    }
-                });
-            });
-
-            setTimeout(() => pinInputs[0].focus(), 100);
-
-            function unlockPortal() {
-                pinGate.classList.add('pin-gate-hidden');
-                setTimeout(() => {
-                    pinGate.style.display = 'none';
-                    mainContent.style.display = 'block';
-                    setTimeout(() => {
-                        mainContent.classList.add('visible');
-                        controls.classList.add('visible'); // Показываем кнопки после ввода пинкода
-                    }, 50);
-                }, 600);
-            }
-
-            function unlockPortalInstant() {
-                pinGate.style.display = 'none';
-                mainContent.style.display = 'block';
-                mainContent.classList.add('visible');
-                controls.classList.add('visible');
-            }
-        });
-    </script>
-</body>
-</html>
+                <!-- Пункт 1 -->
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h2 class="step-title">Стажировочный день: Программа Inventory и расклейка рекламных материалов</h2>
+                    <p class="step-text">
+                        Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением <strong>Inventory</strong>, а также освоим базовые принципы работы на территории.
+                        <br><br>
+                        Вы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нар
