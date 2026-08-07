@@ -1,588 +1,1589 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Портал ПП</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Портал ПП | Обучающий центр MTS</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK (Compat Version for Easy Integration) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
+        /* === ПЕРЕМЕННЫЕ И ДИЗАЙН-СИСТЕМА (ТЕМЫ) === */
         :root {
-            --bg-dark: #121212;
-            --surface-dark: #1e1e1e;
-            --primary-red: #e30611;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
+            --transition-speed: 0.3s;
+            --font-main: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #0a0a0c;
+            --bg-card: rgba(20, 20, 26, 0.75);
+            --bg-card-hover: rgba(30, 30, 38, 0.85);
+            --text-primary: #f4f4f7;
+            --text-secondary: #a0a0ab;
+            --accent-red: #ff001c;
+            --accent-red-hover: #e00018;
+            --accent-glow: rgba(255, 0, 28, 0.35);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --header-bg: rgba(10, 10, 12, 0.85);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --badge-bg: rgba(255, 0, 28, 0.15);
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f4f4f6;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-card-hover: rgba(255, 255, 255, 1);
+            --text-primary: #0f0f12;
+            --text-secondary: #5e5e6e;
+            --accent-red: #e30613;
+            --accent-red-hover: #c40410;
+            --accent-glow: rgba(227, 6, 19, 0.25);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --header-bg: rgba(244, 244, 246, 0.85);
+            --input-bg: rgba(0, 0, 0, 0.04);
+            --badge-bg: rgba(227, 6, 19, 0.1);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: var(--font-main);
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            overflow-x: hidden;
-        }
-
-        .screen {
-            display: none;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
             min-height: 100vh;
-            width: 100%;
-        }
-
-        .screen.active {
             display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
         }
 
-        /* --- Экран логина --- */
-        #login-screen {
+        /* Анимированный футуристический фон */
+        .bg-blobs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.4;
+            animation: float 18s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--accent-red);
+            top: -100px;
+            right: -100px;
+        }
+
+        .blob-2 {
+            width: 350px;
+            height: 350px;
+            background: #8000ff;
+            bottom: -50px;
+            left: -50px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 40px) scale(1.15); }
+        }
+
+        /* Стилизация логотипа МТС */
+        .mts-logo {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .login-container {
-            background-color: var(--surface-dark);
-            padding: 30px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 8px 24px rgba(227, 6, 17, 0.15);
-        }
-
-        .login-container h2 {
-            margin-bottom: 20px;
-            color: var(--primary-red);
-            font-size: 28px;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 15px;
-            border: 1px solid #333;
-            background-color: #2a2a2a;
-            color: white;
+            background-color: var(--accent-red);
+            color: #fff;
+            font-weight: 900;
+            padding: 6px 12px;
             border-radius: 8px;
-            font-size: 16px;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px var(--accent-glow);
+            font-size: 1.1rem;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary-red);
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary-red);
-            color: white;
+        /* Кнопки */
+        .btn {
+            background: var(--accent-red);
+            color: #fff;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
             cursor: pointer;
-            transition: 0.2s;
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        /* --- Основной интерфейс --- */
-        #app-screen {
-            flex-direction: column;
-        }
-
-        header {
-            background-color: var(--surface-dark);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
+            transition: all var(--transition-speed) ease;
+            display: inline-flex;
             align-items: center;
-            border-bottom: 1px solid #333;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px var(--accent-glow);
         }
 
-        .user-info {
+        .btn:hover {
+            background: var(--accent-red-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            color: var(--accent-red);
+        }
+
+        /* === ЭКРАН АВТОРИЗАЦИИ (ОКНО ВХОДА) === */
+        #authOverlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-main);
+            z-index: 9999;
             display: flex;
-            flex-direction: column;
-        }
-
-        #user-role {
-            font-size: 12px;
-            color: var(--primary-red);
-            font-weight: bold;
-            margin-top: 2px;
-        }
-
-        .nav-scroll {
-            display: flex;
-            overflow-x: auto;
-            background-color: var(--surface-dark);
-            padding: 10px;
-            gap: 10px;
-        }
-
-        .nav-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .nav-btn {
-            background-color: #2a2a2a;
-            padding: 10px 15px;
-            white-space: nowrap;
-            border-radius: 20px;
-            font-size: 14px;
-            width: auto;
-        }
-
-        .nav-btn.active {
-            background-color: var(--primary-red);
-        }
-
-        main {
+            align-items: center;
+            justify-content: center;
             padding: 20px;
-            flex-grow: 1;
-            padding-bottom: 80px; /* Отступ для нижних кнопок */
         }
 
-        .page {
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+            padding: 40px 30px;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .auth-title {
+            margin: 20px 0 10px;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .auth-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .input-control {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-control:focus {
+            border-color: var(--accent-red);
+        }
+
+        /* === ХЕДЕР И НАВИГАЦИЯ === */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--header-bg);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--badge-bg);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            border: 1px solid var(--border-color);
+        }
+
+        .theme-toggle {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(20deg);
+        }
+
+        /* Главное меню (Каталоги) */
+        nav.main-nav {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 25px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        nav.main-nav::-webkit-scrollbar {
             display: none;
-            animation: fadeIn 0.3s ease;
         }
 
-        .page.active {
+        .nav-item {
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--accent-red);
+            color: #fff;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        /* ОСНОВНОЙ КОНТЕНТ */
+        main {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px 60px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .page-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page-section.active {
             display: block;
         }
-
-        h1 {
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-
-        /* Карточки */
-        .card {
-            background-color: var(--surface-dark);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border-left: 4px solid var(--primary-red);
-        }
-
-        .card h3 {
-            margin-bottom: 10px;
-        }
-
-        .card .prize {
-            color: #4CAF50;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .card .leader {
-            color: #FFC107;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-
-        .deadline {
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        /* Чат */
-        .chat-messages {
-            background-color: var(--surface-dark);
-            height: 300px;
-            border-radius: 12px;
-            padding: 15px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input-area button {
-            width: auto;
-            padding: 0 20px;
-        }
-
-        .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #2a2a2a;
-        }
-
-        .message.system {
-            color: var(--text-muted);
-            text-align: center;
-            background: none;
-            font-size: 12px;
-        }
-
-        /* Модальные окна */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background-color: var(--surface-dark);
-            padding: 25px;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .modal-content h3 { margin-bottom: 15px; }
-        .modal-content textarea {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            background: #2a2a2a;
-            color: white;
-            border: 1px solid #333;
-            margin-bottom: 15px;
-            resize: none;
-        }
-
-        .modal-content button { margin-bottom: 10px; }
-        .btn-cancel { background-color: #333; }
-
-        /* Нижняя панель */
-        .bottom-actions {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            background-color: var(--surface-dark);
-            padding: 10px 20px;
-            border-top: 1px solid #333;
-            gap: 10px;
-        }
-
-        .btn-support { background-color: #4CAF50; }
-        .btn-logout { background-color: #333; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Заголовки страниц */
+        .section-header {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* СЕТКА КАРТОЧЕК СТАЖИРОВКИ */
+        .trainee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .trainee-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trainee-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-red);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-step-num {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--accent-red);
+            color: #fff;
+            font-weight: 900;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        /* МЕДИА КОНТЕЙНЕРЫ (16:9 и 9:16) */
+        .media-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Первый пункт: формат 16:9 */
+        .media-16-9 {
+            aspect-ratio: 16 / 9;
+        }
+
+        /* Пункты 2-12: формат 9:16 */
+        .media-9-16 {
+            aspect-ratio: 9 / 16;
+            max-height: 480px;
+        }
+
+        .media-placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(255,0,28,0.1), rgba(0,0,0,0.8));
+            color: var(--text-secondary);
+            gap: 12px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .media-placeholder i {
+            font-size: 3rem;
+            color: var(--accent-red);
+        }
+
+        .card-body {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .card-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        /* === РАЗДЕЛ КОНКУРСЫ === */
+        .contest-banner {
+            background: linear-gradient(135deg, var(--accent-red), #50000a);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            color: #fff;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            box-shadow: 0 10px 30px var(--accent-glow);
+        }
+
+        .timer-box {
+            background: rgba(0,0,0,0.4);
+            padding: 15px 25px;
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .timer-val {
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .contest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .contest-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contest-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--badge-bg);
+            color: var(--accent-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .prize-tag {
+            margin-top: 15px;
+            padding: 10px;
+            background: var(--input-bg);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-red);
+            border: 1px dashed var(--accent-red);
+        }
+
+        /* === ЧАТ АГЕНТОВ === */
+        .chat-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            height: 550px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            align-self: flex-start;
+        }
+
+        .chat-bubble.mine {
+            align-self: flex-end;
+            background: var(--accent-red);
+            color: #fff;
+            border: none;
+        }
+
+        .chat-author {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background: var(--header-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* === АДМИН-ПАНЕЛЬ (ЛИЧНЫЙ КАБИНЕТ) === */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-table th {
+            background: var(--input-bg);
+            font-weight: 700;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-online { background: #00e676; box-shadow: 0 0 8px #00e676; }
+        .status-offline { background: #888; }
+
+        /* МОДАЛЬНЫЕ ОКНА */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        /* АДАПТИВНОСТЬ МАТРИЦЫ */
+        @media (max-width: 768px) {
+            header { padding: 12px 15px; }
+            main { padding: 0 15px 40px; }
+            .section-title { font-size: 1.5rem; }
+            .trainee-grid { grid-template-columns: 1fr; }
+            .contest-banner { flex-direction: column; text-align: center; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Экран входа -->
-    <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <h2>Портал ПП</h2>
-            <input type="text" id="lastName" placeholder="Фамилия" required>
-            <input type="text" id="firstName" placeholder="Имя" required>
-            <button onclick="attemptLogin()">Войти в портал</button>
+    <!-- Анимированные шары заднего фона -->
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- === ЭКРАН ВХОДА (ИМЯ И ФАМИЛИЯ) === -->
+    <div id="authOverlay">
+        <div class="auth-card">
+            <div class="mts-logo" style="margin-bottom: 15px;">МТС</div>
+            <h2 class="auth-title">Портал ПП</h2>
+            <p class="auth-subtitle">Обучающая платформа агента-стажёра</p>
+            
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="input-group">
+                    <label for="userNameInput">Введите ваше Имя и Фамилию</label>
+                    <input type="text" id="userNameInput" class="input-control" placeholder="Например: Иван Иванов" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">
+                    <span>Войти на портал</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- Модальное окно для ПИН-кода админа -->
-    <div id="admin-pin-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3>Вход руководства</h3>
-            <p style="margin-bottom: 15px; color: #a0a0a0;">Введите код доступа:</p>
-            <input type="password" id="admin-pin-input" placeholder="****">
-            <button onclick="verifyAdminPin()">Подтвердить</button>
-            <button class="btn-cancel" onclick="cancelAdminLogin()">Отмена</button>
+    <!-- === МОДАЛЬНОЕ ОКНО PIN-КОДА АДМИНИСТРАТОРА === -->
+    <div id="pinModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closePinModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="margin-bottom: 10px; font-weight: 800;"><i class="fa-solid fa-lock" style="color: var(--accent-red);"></i> Код Администратора</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Подтвердите права доступа для Виктора Якушева.</p>
+            <form onsubmit="verifyPin(event)">
+                <div class="input-group">
+                    <input type="password" id="pinInput" class="input-control" placeholder="Введите PIN код" maxlength="6" required autofocus>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Войти как Руководитель</button>
+            </form>
         </div>
     </div>
 
-    <!-- Модальное окно поддержки -->
-    <div id="support-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3>Служба поддержки</h3>
-            <p style="margin-bottom: 15px; font-size: 14px; color: #a0a0a0;">Напишите ваши пожелания, идеи или сообщите о проблеме:</p>
-            <textarea id="support-text" rows="4" placeholder="Чего не хватает на сайте?"></textarea>
-            <button class="btn-support" onclick="sendSupportMessage()">Отправить</button>
-            <button class="btn-cancel" onclick="closeSupport()">Закрыть</button>
+    <!-- === ХЕДЕР САЙТА === -->
+    <header>
+        <div class="header-brand">
+            <div class="mts-logo">МТС</div>
+            <div style="font-weight: 800; font-size: 1.1rem; letter-spacing: -0.5px;">Портал ПП</div>
         </div>
-    </div>
 
-    <!-- Основной портал -->
-    <div id="app-screen" class="screen">
-        <header>
-            <div class="user-info">
-                <span id="user-greeting" style="font-weight: bold; font-size: 18px;"></span>
-                <span id="user-role"></span>
+        <div class="header-controls">
+            <div id="userBadge" class="user-badge">
+                <i class="fa-solid fa-user-check"></i>
+                <span id="userNameDisplay">Стажёр</span>
             </div>
-            <div style="font-weight: 900; color: var(--primary-red); font-size: 20px;">МТС</div>
-        </header>
 
-        <nav class="nav-scroll">
-            <button class="nav-btn active" onclick="switchPage('home')">Главная</button>
-            <button class="nav-btn" onclick="switchPage('contests')">Конкурсы</button>
-            <button class="nav-btn" onclick="switchPage('chat')">Чат агентов</button>
-            <button class="nav-btn admin-only" onclick="switchPage('admin')" style="display: none;">Админ-панель</button>
-        </nav>
+            <!-- Кнопка Личный Кабинет (Только для Виктора Якушева) -->
+            <button id="adminCabinetBtn" class="btn btn-secondary" style="display: none; padding: 8px 14px;" onclick="switchTab('admin')">
+                <i class="fa-solid fa-sliders"></i>
+                <span class="desktop-only">Кабинет</span>
+            </button>
 
-        <main>
-            <!-- Главная страница -->
-            <section id="home-page" class="page active">
-                <h1>Главная</h1>
-                <div class="card">
-                    <h3>Добро пожаловать в Портал ПП!</h3>
-                    <p style="color: var(--text-muted); line-height: 1.5;">Здесь будут публиковаться свежие новости, развлекательный контент и важная информация для всех агентов. Раздел находится в стадии наполнения.</p>
+            <!-- Кнопка Поддержки -->
+            <button class="btn btn-secondary" style="padding: 8px 14px;" onclick="openSupportModal()">
+                <i class="fa-solid fa-headset"></i>
+            </button>
+
+            <!-- Переключатель темы -->
+            <button class="theme-toggle" onclick="toggleTheme()" title="Сменить тему">
+                <i class="fa-solid fa-sun" id="themeIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- === НАВИГАЦИОННОЕ МЕНЮ КАТАЛОГОВ === -->
+    <nav class="main-nav">
+        <div class="nav-item active" onclick="switchTab('home')">
+            <i class="fa-solid fa-house"></i>
+            <span>Главная</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('trainee')">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Агент-стажёр</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('incoming')">
+            <i class="fa-solid fa-phone-incoming"></i>
+            <span>Входящий вызов</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('pko')">
+            <i class="fa-solid fa-door-open"></i>
+            <span>Поквартирный обход</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('contest')">
+            <i class="fa-solid fa-trophy"></i>
+            <span>Конкурс</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('chat')">
+            <i class="fa-solid fa-comments"></i>
+            <span>Чат Агентов</span>
+        </div>
+    </nav>
+
+    <!-- === ОСНОВНОЕ СОДЕРЖИМОЕ СТРАНИЦ === -->
+    <main>
+
+        <!-- 1. ГЛАВНАЯ СТРАНИЦА -->
+        <section id="sec-home" class="page-section active">
+            <div class="section-header">
+                <h1 class="section-title"><i class="fa-solid fa-bolt" style="color: var(--accent-red);"></i> Добро пожаловать на Портал!</h1>
+                <p class="section-subtitle">Официальный единый обучающий портал для агентов и стажёров МТС</p>
+            </div>
+
+            <!-- Главный информационный баннер -->
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 30px; margin-bottom: 30px; backdrop-filter: blur(10px);">
+                <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 12px; color: var(--accent-red);">🚀 Твой первый день — шаг к высоким доходам!</h2>
+                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px;">
+                    Здесь собрано всё, что нужно для быстрого старта: интерактивный курс стажёра, регламенты работы с приложением Inventory, инструкции по визуализации на территории и корпоративные конкурсы с крутыми призами.
+                </p>
+                <button class="btn" onclick="switchTab('trainee')">
+                    <span>Начать обучение стажёра</span>
+                    <i class="fa-solid fa-circle-play"></i>
+                </button>
+            </div>
+
+            <!-- Новостная лента / Развлечения -->
+            <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 15px;">Последние новости и события</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+                    <span style="font-size: 0.75rem; color: var(--accent-red); font-weight: 700;">ОБНОВЛЕНИЕ</span>
+                    <h4 style="margin: 8px 0; font-weight: 700;">Обновлены стандарты фотоотчёта</h4>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary);">Обязательно захватывайте в кадр номер квартиры или контур щитка при отправке вечернего отчёта.</p>
                 </div>
-            </section>
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+                    <span style="font-size: 0.75rem; color: var(--accent-red); font-weight: 700;">МОТИВАЦИЯ</span>
+                    <h4 style="margin: 8px 0; font-weight: 700;">Гонка продаж в самом разгаре!</h4>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary);">Переходите во вкладку Конкурс и проверяйте свои позиции в рейтинге до 28 августа.</p>
+                </div>
+            </div>
+        </section>
 
-            <!-- Страница конкурсов -->
-            <section id="contests-page" class="page">
-                <h1>Текущие конкурсы</h1>
-                <p class="deadline">Итоги подводятся: <strong>28 августа 14:00</strong></p>
+        <!-- 2. КАТАЛОГ 1: АГЕНТ-СТАЖЁР (12 ЭТАПОВ) -->
+        <section id="sec-trainee" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title"><i class="fa-solid fa-graduation-cap" style="color: var(--accent-red);"></i> Каталог Агента-Стажёра</h1>
+                <p class="section-subtitle">Пошаговый план работы в твой первый стажировочный день</p>
+            </div>
+
+            <div class="trainee-grid">
+
+                <!-- 1. Стажировочный день (Формат 16:9) -->
+                <div class="trainee-card">
+                    <div class="media-container media-16-9">
+                        <span class="card-step-num">Этап 1</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-image"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Графический материал (16:9)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">1. Стажировочный день: Программа Inventory и расклейка рекламных материалов</h3>
+                        <p class="card-text">Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением Inventory, а также освоим базовые принципы работы на территории.
+
+Вы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании.</p>
+                    </div>
+                </div>
+
+                <!-- 2. Программа Inventory (Формат 9:16) -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 2</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">2. Программа Inventory: Статистика за месяц</h3>
+                        <p class="card-text">Приложение Inventory — это ваш личный кабинет и главный помощник. В этом разделе вы научитесь отслеживать свои результаты.
+
+Аналитика: Следите за количеством пройденных домов и выполненных задач в режиме реального времени.
+Прогресс: Изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии. Контроль цифр — залог высокого дохода.</p>
+                    </div>
+                </div>
+
+                <!-- 3. Адреса твоей территории (Формат 9:16) -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 3</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">3. Адреса твоей территории</h3>
+                        <p class="card-text">В этом блоке мы разбираем, как работать с адресной базой.
+
+Вы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Четкое следование маршруту экономит ваши силы и увеличивает охват.</p>
+                    </div>
+                </div>
+
+                <!-- 4. Чек-лист рабочего дня -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 4</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">4. Чек-лист рабочего дня</h3>
+                        <p class="card-text">Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист рабочего дня включает в себя все этапы: от планирования рабочего дня до отправки вечернего отчета после его завершения.
+
+Привычка сверяться с чек-листами поможет вам автоматизировать рутину, избежать ошибок и всегда выполнять работу без замечаний от руководителя.</p>
+                    </div>
+                </div>
+
+                <!-- 5. Работа в полях -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 5</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">5. Работа в полях: Открытие чек-листа для визуализации</h3>
+                        <p class="card-text">Вы прибыли на адрес — время начинать работу.
+Подойдя к нужному дому, первым делом откройте чек-лист в приложении.
+
+Это действие фиксирует начало вашей работы на конкретном адресе. Без открытого чек-листа проделанная работа не будет учтена!</p>
+                    </div>
+                </div>
+
+                <!-- 6. Предподъездная доска -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 6</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">6. Визуализация предподъездной доски объявлений</h3>
+                        <p class="card-text">Обратите внимание на доску объявлений перед подъездом. 
+Разместите рекламу ровно, аккуратно и на самом видном месте.
+
+Убедитесь, что листовка надежно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании.</p>
+                    </div>
+                </div>
+
+                <!-- 7. Визуализация в подъезде -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 7</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">7. Визуализация в подъезде — щитки, коробки, трубостойки</h3>
+                        <p class="card-text">Работа внутри подъезда требует особого внимания. Пройдите по этажам и обратите внимание на места прокладки коммуникаций.
+
+Слаботочные щитки и распределительные коробки: Размещайте листовки строго в отведенных для этого местах.
+Трубостойки: Убедитесь, что визуализация размещена аккуратно и не перекрывает доступ к оборудованию. Ваша листовка должна быть заметна каждому, кто обратит внимание на телекоммуникационные сети дома.</p>
+                    </div>
+                </div>
+
+                <!-- 8. Фотоотчёт -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 8</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">8. Фотоотчёт</h3>
+                        <p class="card-text">Каждое ваше действие должно быть зафиксировано. Фотография — это подтверждение качества вашей работы. Сфотографируйте каждую листовку. 
+Делайте светлые и четкие снимки. 
+
+В кадр должен полностью попадать размещенный материал и часть окружающего пространства (номер квартиры, этаж или контуры щитка), чтобы можно было легко определить место.</p>
+                    </div>
+                </div>
+
+                <!-- 9. Почтовые ящики -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 9</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">9. Почтовые ящики</h3>
+                        <p class="card-text">Раскидка листовок по почтовым ящикам — классический и эффективный инструмент.
+Вкладывайте листовки так, чтобы они не торчали наполовину и не падали на пол.
+
+Действуйте системно: ни один ящик не должен быть пропущен, если иное не указано в вашем маршрутном листе. Относитесь к общедомовому имуществу с уважением.</p>
+                    </div>
+                </div>
+
+                <!-- 10. Закрытие чек-листа -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 10</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">10. Закрытие чек-листа после пройденного дома</h3>
+                        <p class="card-text">Работа в доме завершена только тогда, когда вы закрыли чек-лист в системе.
+Проверьте, все ли пункты выполнены (предподъездная доска, этажи, ящики, фото).
+
+Отметьте в открытом чек листе, в каких подъездах вы разместили рекламу, были ли там листовки конкурентов, и подошёл ли ключ-вездеход к домофону. Далее сохраните результат и завершите чек лист. Это зафиксирует время вашей работы и переведет дом в статус «Завершён». Только после этого переходите к следующему адресу.</p>
+                    </div>
+                </div>
+
+                <!-- 11. Вечерний отчёт -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 11</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">11. Вечерний отчёт за пройденный рабочий день</h3>
+                        <p class="card-text">Рабочий день агента заканчивается подведением итогов.
+
+Вечерний отчет — это сводка вашей активности: сколько домов было пройдено и какие результаты получены. Своевременная отправка отчета позволяет вашему руководителю оценить эффективность дня и помочь вам с планом на завтра.
+
+В - Визуализация (сколько было пройденных квартир при размещении рекламных материалов)
+Дмх - Домовой Обход (сколько квартир было пройдено при поквартирном обходе)
+Од - Открытые двери (сколько дверей было открыто при поквартирном обходе)
+Вхз - Входяшка (сколько раз тебе позвонили на твой виртуальный номер по листовке)
+Птнц - Потенциальный абонент (человек который дал тебе свой контактный номер для дальнейшего подключения)
+П - Продажи (измеряется в услугах (конвергент - 2 услуги, допродажа - 1 услуга))
+Пр - Продажа роутера (сколько ты продал роутеров)
+Пс - Продажа приставки (сколько ты продал приставок)
+Здесь ты пишешь список домов которые ты прошел за день.</p>
+                    </div>
+                </div>
+
+                <!-- 12. Вечерний фотоотчёт -->
+                <div class="trainee-card">
+                    <div class="media-container media-9-16">
+                        <span class="card-step-num">Этап 12</span>
+                        <div class="media-placeholder">
+                            <i class="fa-solid fa-circle-play"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Видеоинструкция (9:16)</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-title">12. Вечерний фотоотчёт по сделанной визуализации</h3>
+                        <p class="card-text">Финальный этап смены — фотоотчет 
+Вам необходимо загрузить все сделанные за день фотографии визуализации (доски, щитки, распределительные коробки) в специальный чат. Убедитесь, что фотографии подписаны по нужным адресам, загрузились без ошибок и соответствует регламенту который находится в закреплённом сообщении. Качественный фотоотчет гарантирует отсутствие вопросов к проделанной работе.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 3. КАТАЛОГ 2: ВХОДЯЩИЙ ВЫЗОВ -->
+        <section id="sec-incoming" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title"><i class="fa-solid fa-phone-incoming" style="color: var(--accent-red);"></i> Входящий вызов</h1>
+                <p class="section-subtitle">Материалы и скрипты обработки входящих звонков от клиентов</p>
+            </div>
+            <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                <h3 style="font-weight: 700; margin-bottom: 8px;">Раздел находится в разработке</h3>
+                <p style="color: var(--text-secondary);">Скоро здесь появятся скрипты продаж для входящих обращений по рекламным листовкам.</p>
+            </div>
+        </section>
+
+        <!-- 4. КАТАЛОГ 3: ПОКВАРТИРНЫЙ ОБХОД -->
+        <section id="sec-pko" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title"><i class="fa-solid fa-door-open" style="color: var(--accent-red);"></i> Поквартирный обход (ПКО)</h1>
+                <p class="section-subtitle">Техники активных продаж при живом общении с жильцами</p>
+            </div>
+            <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                <h3 style="font-weight: 700; margin-bottom: 8px;">Раздел находится в разработке</h3>
+                <p style="color: var(--text-secondary);">Инструкции и лайфхаки по работе на поквартирном обходе готовятся к публикации.</p>
+            </div>
+        </section>
+
+        <!-- 5. КАТАЛОГ 4: КОНКУРСЫ -->
+        <section id="sec-contest" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title"><i class="fa-solid fa-trophy" style="color: var(--accent-red);"></i> Конкурсы Агентов</h1>
+                <p class="section-subtitle">Прояви себя, стань лучшим и забери заветный приз!</p>
+            </div>
+
+            <!-- Обратный отсчёт -->
+            <div class="contest-banner">
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 5px;">🔥 ЛЕТНЯЯ ГОНКА ПРОДАЖ МТС</h2>
+                    <p style="opacity: 0.9; font-size: 0.95rem;">Итоги подводим 28 августа в 14:00!</p>
+                </div>
+                <div class="timer-box">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.8;">До конца конкурса:</div>
+                    <div id="contestTimer" class="timer-val">00d 00h 00m 00s</div>
+                </div>
+            </div>
+
+            <div class="contest-grid">
+                <!-- Конкурс 1 -->
+                <div class="contest-card">
+                    <div class="contest-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 10px;">Рождённый расклейщик</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px;">
+                        Агент, который расклеил и зафиксировал больше всего рекламных материалов за текущий месяц.
+                    </p>
+                    <div style="font-size: 0.9rem; font-weight: 700;">Лидер дня: <span id="c1_leader" style="color: var(--accent-red);">Уточняется...</span></div>
+                    <div class="prize-tag"><i class="fa-solid fa-gift"></i> Приз: <span id="c1_prize">Не назначен</span></div>
+                </div>
+
+                <!-- Конкурс 2 -->
+                <div class="contest-card">
+                    <div class="contest-icon"><i class="fa-solid fa-user-ninja"></i></div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 10px;">Волк ПКО</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px;">
+                        Агент, совершивший наибольшее количество личных продаж при поквартирном обходе за месяц.
+                    </p>
+                    <div style="font-size: 0.9rem; font-weight: 700;">Лидер дня: <span id="c2_leader" style="color: var(--accent-red);">Уточняется...</span></div>
+                    <div class="prize-tag"><i class="fa-solid fa-gift"></i> Приз: <span id="c2_prize">Не назначен</span></div>
+                </div>
+
+                <!-- Конкурс 3 -->
+                <div class="contest-card">
+                    <div class="contest-icon"><i class="fa-solid fa-headset"></i></div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 10px;">Джордан Белфорт</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px;">
+                        Агент, закрывший максимальное количество продаж с входящих звонков по расклейке.
+                    </p>
+                    <div style="font-size: 0.9rem; font-weight: 700;">Лидер дня: <span id="c3_leader" style="color: var(--accent-red);">Уточняется...</span></div>
+                    <div class="prize-tag"><i class="fa-solid fa-gift"></i> Приз: <span id="c3_prize">Не назначен</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. ЧАТ АГЕНТОВ -->
+        <section id="sec-chat" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title"><i class="fa-solid fa-comments" style="color: var(--accent-red);"></i> Общий Чат Агентов</h1>
+                <p class="section-subtitle">Общайтесь, делитесь опытом и задавайте вопросы коллегам</p>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-bubble">
+                        <div class="chat-author"><i class="fa-solid fa-robot"></i> Системный Бот</div>
+                        <div>Добро пожаловать в общий чат портала ПП! Напишите свое первое сообщение.</div>
+                    </div>
+                </div>
+                <form class="chat-input-area" onsubmit="sendChatMessage(event)">
+                    <input type="text" id="chatInput" class="input-control" placeholder="Напишите сообщение..." required autocomplete="off">
+                    <button type="submit" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 7. АДМИН-ПАНЕЛЬ (ЛИЧНЫЙ КАБИНЕТ ВИКТОРА ЯКУШЕВА) -->
+        <section id="sec-admin" class="page-section">
+            <div class="section-header">
+                <h1 class="section-title"><i class="fa-solid fa-user-shield" style="color: var(--accent-red);"></i> Кабинет Руководителя</h1>
+                <p class="section-subtitle">Управление порталом, мониторинг посещаемости и настройка конкурсов</p>
+            </div>
+
+            <!-- Мониторинг Агентов -->
+            <div style="margin-bottom: 35px;">
+                <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 15px;"><i class="fa-solid fa-users"></i> Посещаемость и Онлайн Статус</h3>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Агент (Имя Фамилия)</th>
+                                <th>Последний вход</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agentLogTable">
+                            <tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Загрузка списка агентов...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Управление конкурсами -->
+            <div style="margin-bottom: 35px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 25px;">
+                <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;"><i class="fa-solid fa-pen-to-square"></i> Редактирование Конкурсов и Призов</h3>
                 
-                <div class="card">
-                    <h3>✉️ Рождённый расклейщик</h3>
-                    <p style="font-size: 14px; color: var(--text-muted);">Больше всего расклеенных рекламных материалов за месяц.</p>
-                    <p class="prize">Приз: <span id="prize-promo">Загрузка...</span></p>
-                    <p class="leader">Лидер: <span id="leader-promo">Загрузка...</span></p>
-                </div>
-                <div class="card">
-                    <h3>🚪 Волк ПКО</h3>
-                    <p style="font-size: 14px; color: var(--text-muted);">Больше всего продаж на поквартирном обходе за месяц.</p>
-                    <p class="prize">Приз: <span id="prize-pko">Загрузка...</span></p>
-                    <p class="leader">Лидер: <span id="leader-pko">Загрузка...</span></p>
-                </div>
-                <div class="card">
-                    <h3>📞 Джордан Белфорт</h3>
-                    <p style="font-size: 14px; color: var(--text-muted);">Больше всего продаж на входящем звонке.</p>
-                    <p class="prize">Приз: <span id="prize-calls">Загрузка...</span></p>
-                    <p class="leader">Лидер: <span id="leader-calls">Загрузка...</span></p>
-                </div>
-            </section>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                    <!-- Конкурс 1 Admin -->
+                    <div style="background: var(--input-bg); padding: 15px; border-radius: var(--radius-md);">
+                        <h4 style="margin-bottom: 10px; color: var(--accent-red);">Рождённый расклейщик</h4>
+                        <div class="input-group">
+                            <label>Лидер / Результат дня</label>
+                            <input type="text" id="adm_c1_leader" class="input-control" placeholder="например: Иван И. - 450 листовок">
+                        </div>
+                        <div class="input-group">
+                            <label>Приз конкурса</label>
+                            <input type="text" id="adm_c1_prize" class="input-control" placeholder="например: Премия 3000 рублей">
+                        </div>
+                    </div>
 
-            <!-- Чат агентов -->
-            <section id="chat-page" class="page">
-                <h1>Общий чат</h1>
-                <div id="chat-box" class="chat-messages">
-                    <div class="message system">Чат работает в локальном режиме. Для синхронизации между агентами нужна база данных.</div>
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="Сообщение...">
-                    <button onclick="sendMessage()">➤</button>
-                </div>
-            </section>
+                    <!-- Конкурс 2 Admin -->
+                    <div style="background: var(--input-bg); padding: 15px; border-radius: var(--radius-md);">
+                        <h4 style="margin-bottom: 10px; color: var(--accent-red);">Волк ПКО</h4>
+                        <div class="input-group">
+                            <label>Лидер / Результат дня</label>
+                            <input type="text" id="adm_c2_leader" class="input-control" placeholder="например: Петр С. - 5 продаж">
+                        </div>
+                        <div class="input-group">
+                            <label>Приз конкурса</label>
+                            <input type="text" id="adm_c2_prize" class="input-control" placeholder="например: Наушники AirPods">
+                        </div>
+                    </div>
 
-            <!-- Админ-панель -->
-            <section id="admin-page" class="page">
-                <h1>Управление порталом</h1>
-                
-                <div class="card">
-                    <h3 style="margin-bottom: 15px;">Установка призов</h3>
-                    <input type="text" id="edit-prize-promo" placeholder="Приз: Рождённый расклейщик">
-                    <input type="text" id="edit-prize-pko" placeholder="Приз: Волк ПКО">
-                    <input type="text" id="edit-prize-calls" placeholder="Приз: Джордан Белфорт">
-                    <button onclick="savePrizes()" style="margin-top: 10px;">Сохранить призы</button>
+                    <!-- Конкурс 3 Admin -->
+                    <div style="background: var(--input-bg); padding: 15px; border-radius: var(--radius-md);">
+                        <h4 style="margin-bottom: 10px; color: var(--accent-red);">Джордан Белфорт</h4>
+                        <div class="input-group">
+                            <label>Лидер / Результат дня</label>
+                            <input type="text" id="adm_c3_leader" class="input-control" placeholder="например: Анна М. - 8 подключений">
+                        </div>
+                        <div class="input-group">
+                            <label>Приз конкурса</label>
+                            <input type="text" id="adm_c3_prize" class="input-control" placeholder="например: Сертификат 5000 рублей">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card">
-                    <h3 style="margin-bottom: 15px;">Установка лидеров (текущий день)</h3>
-                    <input type="text" id="edit-leader-promo" placeholder="Лидер: Рождённый расклейщик (напр. Иванов - 500 шт)">
-                    <input type="text" id="edit-leader-pko" placeholder="Лидер: Волк ПКО (напр. Петров - 15 продаж)">
-                    <input type="text" id="edit-leader-calls" placeholder="Лидер: Джордан Белфорт (напр. Сидоров - 20 продаж)">
-                    <button onclick="saveLeaders()" style="margin-top: 10px;">Обновить результаты</button>
-                </div>
-            </section>
-        </main>
+                <button class="btn" style="margin-top: 20px;" onclick="saveContestSettings()">
+                    <i class="fa-solid fa-floppy-disk"></i> Сохранить изменения конкурсов
+                </button>
+            </div>
 
-        <div class="bottom-actions">
-            <button class="btn-support" onclick="openSupport()">Поддержка</button>
-            <button class="btn-logout" onclick="logout()">Выход</button>
+            <!-- Входящие обращения в Поддержку -->
+            <div>
+                <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 15px;"><i class="fa-solid fa-inbox"></i> Пожелания и Предложения Агентов</h3>
+                <div id="supportInbox" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="color: var(--text-secondary);">Пока нет новых предложений.</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- === МОДАЛЬНОЕ ОКНО ПОДДЕРЖКИИ И ПОЖЕЛАНИЙ === -->
+    <div id="supportModal" class="modal-overlay">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeSupportModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="margin-bottom: 10px; font-weight: 800;"><i class="fa-solid fa-lightbulb" style="color: var(--accent-red);"></i> Поддержка & Идеи</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Напишите, что бы вы хотели добавить на сайт или задайте вопрос руководителю.</p>
+            <form onsubmit="sendSupportMessage(event)">
+                <div class="input-group">
+                    <textarea id="supportTextInput" class="input-control" rows="4" placeholder="Введите ваше сообщение или идею..." required></textarea>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Отправить руководителю</button>
+            </form>
         </div>
     </div>
 
+    <!-- === JAVASCRIPT ЛОГИКА И ИНТЕГРАЦИЯ С FIREBASE === -->
     <script>
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('portalUser');
+        // 1. ИНИЦИАЛИЗАЦИЯ FIREBASE (Используем данные из вашего запроса)
+        const firebaseConfig = {
+          apiKey: "AIzaSyD_giYLNx_5Y3F8FqeF_TMRfqsikWuua6k",
+          authDomain: "portall-pp-e2101.firebaseapp.com",
+          projectId: "portall-pp-e2101",
+          storageBucket: "portall-pp-e2101.firebasestorage.app",
+          messagingSenderId: "378340444786",
+          appId: "1:378340444786:web:b3832b6b3ded6102cfd0eb"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // 2. ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+        let currentUser = null;
+        let isAdmin = false;
+
+        // 3. ПРОВЕРКА СЕССИИ ПРИ ЗАГРУЗКЕ
+        window.addEventListener('DOMContentLoaded', () => {
+            // Восстановление темы
+            const savedTheme = localStorage.getItem('mts_portal_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+
+            // Восстановление авторизации
+            const savedUser = localStorage.getItem('mts_portal_user');
             if (savedUser) {
-                const user = JSON.parse(savedUser);
-                enterPortal(user.firstName, user.lastName, user.role);
+                const userObj = JSON.parse(savedUser);
+                loginUser(userObj.fullName, userObj.isAdmin);
             }
-            loadContestData();
+
+            // Запуск таймера конкурса
+            startContestTimer();
+
+            // Подписка на данные
+            listenToContests();
+            listenToChat();
+            if (isAdmin) listenToAdminData();
         });
 
-        let tempLoginData = {};
+        // 4. ТЕМА ОФОРМЛЕНИЯ
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('mts_portal_theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
 
-        function attemptLogin() {
-            const lastName = document.getElementById('lastName').value.trim();
-            const firstName = document.getElementById('firstName').value.trim();
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
 
-            if (!lastName || !firstName) {
-                alert('Пожалуйста, введите имя и фамилию');
-                return;
-            }
+        // 5. АВТОРИЗАЦИЯ И ЛОГИН
+        function handleAuth(event) {
+            event.preventDefault();
+            const inputVal = document.getElementById('userNameInput').value.trim();
+            if (!inputVal) return;
 
-            // Проверка на админа
-            if (lastName.toLowerCase() === 'якушев' && firstName.toLowerCase() === 'виктор') {
-                tempLoginData = { firstName: 'Виктор', lastName: 'Якушев' };
-                document.getElementById('admin-pin-modal').style.display = 'flex';
-                document.getElementById('admin-pin-input').value = '';
-                document.getElementById('admin-pin-input').focus();
+            // Проверка на Виктора Якушева
+            const cleanName = inputVal.toLowerCase().replace(/\s+/g, ' ');
+            if (cleanName === 'якушев виктор' || cleanName === 'виктор якушев') {
+                document.getElementById('pinModal').classList.add('active');
             } else {
-                enterPortal(firstName, lastName, 'Агент');
+                loginUser(inputVal, false);
             }
         }
 
-        function verifyAdminPin() {
-            const pin = document.getElementById('admin-pin-input').value;
+        function closePinModal() {
+            document.getElementById('pinModal').classList.remove('active');
+        }
+
+        function verifyPin(event) {
+            event.preventDefault();
+            const pin = document.getElementById('pinInput').value.trim();
             if (pin === '1808') {
-                document.getElementById('admin-pin-modal').style.display = 'none';
-                enterPortal(tempLoginData.firstName, tempLoginData.lastName, 'Старший Агент');
+                closePinModal();
+                loginUser('Якушев Виктор', true);
             } else {
-                alert('Неверный код доступа!');
+                alert('Неверный PIN-код администратора!');
             }
         }
 
-        function cancelAdminLogin() {
-            document.getElementById('admin-pin-modal').style.display = 'none';
-        }
+        function loginUser(fullName, adminFlag) {
+            currentUser = fullName;
+            isAdmin = adminFlag;
 
-        function enterPortal(firstName, lastName, role) {
-            // Сохраняем пользователя в локальное хранилище браузера
-            localStorage.setItem('portalUser', JSON.stringify({ firstName, lastName, role }));
+            // Сохраняем в localStorage для сохранения сессии при перезагрузке
+            localStorage.setItem('mts_portal_user', JSON.stringify({ fullName, isAdmin }));
 
-            document.getElementById('login-screen').classList.remove('active');
-            document.getElementById('app-screen').classList.add('active');
-            
-            document.getElementById('user-greeting').innerText = `${lastName} ${firstName}`;
-            document.getElementById('user-role').innerText = role;
+            // Скрываем окно авторизации
+            document.getElementById('authOverlay').style.display = 'none';
 
-            // Если Старший Агент, показываем вкладку админки
-            if (role === 'Старший Агент') {
-                const adminTabs = document.querySelectorAll('.admin-only');
-                adminTabs.forEach(tab => tab.style.display = 'block');
+            // Обновляем плашку пользователя
+            const badge = document.getElementById('userBadge');
+            const nameDisplay = document.getElementById('userNameDisplay');
+
+            if (isAdmin) {
+                nameDisplay.innerHTML = `${fullName} <span style="background:var(--accent-red); color:#fff; padding:2px 6px; border-radius:4px; font-size:0.7rem; margin-left:4px;">Старший Агент</span>`;
+                document.getElementById('adminCabinetBtn').style.display = 'inline-flex';
+                listenToAdminData();
+            } else {
+                nameDisplay.textContent = fullName;
             }
 
-            switchPage('home');
+            // Фиксация входа и Онлайн-статуса в БД
+            trackUserPresence(fullName);
+
+            // Переход на Главную страницу
+            switchTab('home');
         }
 
-        function logout() {
-            localStorage.removeItem('portalUser');
-            location.reload(); 
-        }
+        // 6. ТРЕКИНГ ПОСЕЩАЕМОСТИ И ОНЛАЙН СТАТУСА
+        function trackUserPresence(name) {
+            const userKey = name.replace(/[.#$\[\]]/g, "_");
+            const userRef = db.ref('presence/' + userKey);
 
-        function switchPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const now = new Date().toLocaleString('ru-RU');
             
-            document.getElementById(pageId + '-page').classList.add('active');
-            event.currentTarget.classList.add('active');
+            // Запись данных о посещении
+            userRef.set({
+                name: name,
+                lastSeen: now,
+                online: true
+            });
+
+            // Автоматическая отметка офлайн при закрытии вкладки
+            userRef.onDisconnect().update({
+                online: false,
+                lastSeen: new Date().toLocaleString('ru-RU')
+            });
         }
 
-        // Модальное окно поддержки
-        function openSupport() {
-            document.getElementById('support-modal').style.display = 'flex';
-        }
-        function closeSupport() {
-            document.getElementById('support-modal').style.display = 'none';
-            document.getElementById('support-text').value = '';
-        }
-        function sendSupportMessage() {
-            const text = document.getElementById('support-text').value.trim();
-            if(!text) return;
-            alert('Ваше сообщение отправлено Старшему Агенту!');
-            closeSupport();
-        }
+        // 7. НАВИГАЦИЯ МЕЖДУ СТРАНИЦАМИ
+        function switchTab(tabId) {
+            // Переключение кнопок навигации
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick').includes(tabId));
+            if (activeNav) activeNav.classList.add('active');
 
-        // Логика Конкурсов
-        function loadContestData() {
-            const defaultData = {
-                prizes: { promo: 'Скоро...', pko: 'Скоро...', calls: 'Скоро...' },
-                leaders: { promo: 'Ждем первых результатов', pko: 'Ждем первых результатов', calls: 'Ждем первых результатов' }
-            };
-            
-            const savedPrizes = JSON.parse(localStorage.getItem('portalPrizes')) || defaultData.prizes;
-            const savedLeaders = JSON.parse(localStorage.getItem('portalLeaders')) || defaultData.leaders;
-            
-            // Отображение для всех
-            document.getElementById('prize-promo').innerText = savedPrizes.promo;
-            document.getElementById('prize-pko').innerText = savedPrizes.pko;
-            document.getElementById('prize-calls').innerText = savedPrizes.calls;
+            // Переключение разделов
+            document.querySelectorAll('.page-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            const targetSec = document.getElementById('sec-' + tabId);
+            if (targetSec) targetSec.classList.add('active');
 
-            document.getElementById('leader-promo').innerText = savedLeaders.promo;
-            document.getElementById('leader-pko').innerText = savedLeaders.pko;
-            document.getElementById('leader-calls').innerText = savedLeaders.calls;
-
-            // Заполнение полей в админке
-            document.getElementById('edit-prize-promo').value = savedPrizes.promo !== 'Скоро...' ? savedPrizes.promo : '';
-            document.getElementById('edit-prize-pko').value = savedPrizes.pko !== 'Скоро...' ? savedPrizes.pko : '';
-            document.getElementById('edit-prize-calls').value = savedPrizes.calls !== 'Скоро...' ? savedPrizes.calls : '';
-
-            document.getElementById('edit-leader-promo').value = savedLeaders.promo !== 'Ждем первых результатов' ? savedLeaders.promo : '';
-            document.getElementById('edit-leader-pko').value = savedLeaders.pko !== 'Ждем первых результатов' ? savedLeaders.pko : '';
-            document.getElementById('edit-leader-calls').value = savedLeaders.calls !== 'Ждем первых результатов' ? savedLeaders.calls : '';
+            // Прокрутка наверх
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function savePrizes() {
-            const prizes = {
-                promo: document.getElementById('edit-prize-promo').value || 'Скоро...',
-                pko: document.getElementById('edit-prize-pko').value || 'Скоро...',
-                calls: document.getElementById('edit-prize-calls').value || 'Скоро...'
-            };
-            localStorage.setItem('portalPrizes', JSON.stringify(prizes));
-            loadContestData();
-            alert('Призы успешно обновлены!');
+        // 8. ЧАТ АГЕНТОВ
+        function sendChatMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !currentUser) return;
+
+            db.ref('chat').push({
+                author: currentUser,
+                isAdmin: isAdmin,
+                text: text,
+                timestamp: Date.now()
+            });
+
+            input.value = '';
         }
 
-        function saveLeaders() {
-            const leaders = {
-                promo: document.getElementById('edit-leader-promo').value || 'Ждем первых результатов',
-                pko: document.getElementById('edit-leader-pko').value || 'Ждем первых результатов',
-                calls: document.getElementById('edit-leader-calls').value || 'Ждем первых результатов'
-            };
-            localStorage.setItem('portalLeaders', JSON.stringify(leaders));
-            loadContestData();
-            alert('Списки лидеров обновлены!');
+        function listenToChat() {
+            db.ref('chat').limitToLast(50).on('value', snapshot => {
+                const chatBox = document.getElementById('chatMessages');
+                chatBox.innerHTML = '';
+
+                snapshot.forEach(child => {
+                    const msg = child.val();
+                    const isMine = msg.author === currentUser;
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${isMine ? 'mine' : ''}`;
+                    
+                    const roleBadge = msg.isAdmin ? '<span style="color:var(--accent-red); font-weight:900;">[Старший Агент]</span> ' : '';
+
+                    bubble.innerHTML = `
+                        <div class="chat-author">${roleBadge}${msg.author}</div>
+                        <div>${escapeHtml(msg.text)}</div>
+                    `;
+                    chatBox.appendChild(bubble);
+                });
+
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
         }
 
-        // Локальный Чат
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const box = document.getElementById('chat-box');
-            if (input.value.trim() !== '') {
-                const userData = JSON.parse(localStorage.getItem('portalUser'));
-                const name = userData ? userData.firstName : 'Агент';
+        // 9. КОНКУРСЫ И ТАЙМЕР
+        function startContestTimer() {
+            const contestEndDate = new Date('August 28, 2026 14:00:00').getTime();
+
+            setInterval(() => {
+                const now = new Date().getTime();
+                const diff = contestEndDate - now;
+
+                if (diff <= 0) {
+                    document.getElementById('contestTimer').textContent = "КОНКУРС ЗАВЕРШЁН";
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('contestTimer').textContent = 
+                    `${days}д ${hours < 10 ? '0':''}${hours}ч ${mins < 10 ? '0':''}${mins}м ${secs < 10 ? '0':''}${secs}с`;
+            }, 1000);
+        }
+
+        function listenToContests() {
+            db.ref('contests').on('value', snapshot => {
+                const data = snapshot.val() || {};
                 
-                box.innerHTML += `<div class="message"><strong>${name}:</strong> ${input.value}</div>`;
-                input.value = '';
-                box.scrollTop = box.scrollHeight;
-            }
+                document.getElementById('c1_leader').textContent = data.c1_leader || 'Пока нет лидеров';
+                document.getElementById('c1_prize').textContent = data.c1_prize || 'Не назначен';
+
+                document.getElementById('c2_leader').textContent = data.c2_leader || 'Пока нет лидеров';
+                document.getElementById('c2_prize').textContent = data.c2_prize || 'Не назначен';
+
+                document.getElementById('c3_leader').textContent = data.c3_leader || 'Пока нет лидеров';
+                document.getElementById('c3_prize').textContent = data.c3_prize || 'Не назначен';
+
+                // Заполнение полей в Админке
+                if (isAdmin) {
+                    document.getElementById('adm_c1_leader').value = data.c1_leader || '';
+                    document.getElementById('adm_c1_prize').value = data.c1_prize || '';
+                    document.getElementById('adm_c2_leader').value = data.c2_leader || '';
+                    document.getElementById('adm_c2_prize').value = data.c2_prize || '';
+                    document.getElementById('adm_c3_leader').value = data.c3_leader || '';
+                    document.getElementById('adm_c3_prize').value = data.c3_prize || '';
+                }
+            });
         }
-    </script>
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD_giYLNx_5Y3F8FqeF_TMRfqsikWuua6k",
-    authDomain: "portall-pp-e2101.firebaseapp.com",
-    projectId: "portall-pp-e2101",
-    storageBucket: "portall-pp-e2101.firebasestorage.app",
-    messagingSenderId: "378340444786",
-    appId: "1:378340444786:web:b3832b6b3ded6102cfd0eb"
-  };
+        function saveContestSettings() {
+            if (!isAdmin) return;
 
-  const app = initializeApp(firebaseConfig);
+            db.ref('contests').set({
+                c1_leader: document.getElementById('adm_c1_leader').value,
+                c1_prize: document.getElementById('adm_c1_prize').value,
+                c2_leader: document.getElementById('adm_c2_leader').value,
+                c2_prize: document.getElementById('adm_c2_prize').value,
+                c3_leader: document.getElementById('adm_c3_leader').value,
+                c3_prize: document.getElementById('adm_c3_prize').value
+            });
+
+            alert('Результаты и призы конкурсов успешно обновлены!');
+        }
+
+        // 10. ПОДДЕРЖКАИ ПОЖЕЛАНИЯ
+        function openSupportModal() {
+            document.getElementById('supportModal').classList.add('active');
+        }
+
+        function closeSupportModal() {
+            document.getElementById('supportModal').classList.remove('active');
+        }
+
+        function sendSupportMessage(e) {
+            e.preventDefault();
+            const text = document.getElementById('supportTextInput').value.trim();
+            if (!text) return;
+
+            db.ref('support').push({
+                user: currentUser,
+                text: text,
+                timestamp: new Date().toLocaleString('ru-RU')
+            });
+
+            document.getElementById('supportTextInput').value = '';
+            closeSupportModal();
+            alert('Ваше сообщение отправлено Виктору!');
+        }
+
+        // 11. ПОЛУЧЕНИЕ ДАННЫХ ДЛЯ АДМИН-ПАНЕЛИ
+        function listenToAdminData() {
+            // Список входов
+            db.ref('presence').on('value', snapshot => {
+                const tableBody = document.getElementById('agentLogTable');
+                tableBody.innerHTML = '';
+
+                snapshot.forEach(child => {
+                    const user = child.val();
+                    const row = document.createElement('tr');
+                    
+                    const statusDot = user.online ? 
+                        '<span class="status-dot status-online"></span> В сети' : 
+                        '<span class="status-dot status-offline"></span> Не в сети';
+
+                    row.innerHTML = `
+                        <td style="font-weight:700;">${escapeHtml(user.name)}</td>
+                        <td style="color:var(--text-secondary);">${user.lastSeen || '—'}</td>
+                        <td>${statusDot}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            });
+
+            // Входящие сообщения поддержки
+            db.ref('support').on('value', snapshot => {
+                const inbox = document.getElementById('supportInbox');
+                inbox.innerHTML = '';
+
+                snapshot.forEach(child => {
+                    const msg = child.val();
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:var(--bg-card); border:1px solid var(--border-color); padding:15px; border-radius:var(--radius-md);';
+                    card.innerHTML = `
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:5px;">От: <strong style="color:var(--text-primary);">${escapeHtml(msg.user)}</strong> | ${msg.timestamp}</div>
+                        <div>${escapeHtml(msg.text)}</div>
+                    `;
+                    inbox.appendChild(card);
+                });
+            });
+        }
+
+        // Вспомогательная функция защиты от XSS
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
     </script>
 </body>
 </html>
