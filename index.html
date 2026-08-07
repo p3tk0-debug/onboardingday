@@ -1028,4 +1028,56 @@
                 // Показываем нужный контент
                 tabContents.forEach(tab => {
                     if(tab.id === targetId) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const target = item.dataset.target;
+                    switchTab(target);
+                    dropdownMenu.classList.remove('active');
+                    
+                    if(target === 'tab-admin') {
+                        renderAdminTable();
+                    }
+                });
+            });
+
+            // --- Рендер таблицы Админа ---
+            function renderAdminTable() {
+                const users = getUsers();
+                adminTableBody.innerHTML = '';
+                
+                // Преобразуем объект в массив и сортируем (сначала онлайн)
+                const userArray = Object.values(users).sort((a, b) => {
+                    if (a.online === b.online) return 0;
+                    return a.online ? -1 : 1;
+                });
+
+                if (userArray.length === 0) {
+                    adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Нет данных</td></tr>';
+                    return;
+                }
+
+                userArray.forEach(u => {
+                    const tr = document.createElement('tr');
+                    const statusClass = u.online ? 'status-online' : 'status-offline';
+                    const statusText = u.online ? 'Онлайн' : 'Оффлайн';
+                    
+                    tr.innerHTML = `
+                        <td style="font-weight:600;">${u.name}</td>
+                        <td style="color:var(--text-muted);">${u.lastLogin}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    `;
+                    adminTableBody.appendChild(tr);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
             
