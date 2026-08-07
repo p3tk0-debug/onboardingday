@@ -1,965 +1,958 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Портал ПП</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* Dark Theme (Default) */
-            --bg-main: #0a0a0a;
-            --bg-surface: rgba(25, 25, 25, 0.7);
-            --bg-surface-hover: rgba(40, 40, 40, 0.9);
-            --text-main: #ffffff;
-            --text-secondary: #a0a0a0;
-            --accent-red: #E30611;
-            --accent-red-glow: rgba(227, 6, 17, 0.4);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --glass-blur: blur(12px);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Портал ПП</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ ТОКЕНЫ ТЕМЫ ============ */
+:root{
+  --bg:#0A0A0B; --bg-2:#111113; --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.07);
+  --border:rgba(255,255,255,.09); --text:#F4F4F5; --text-dim:#9A9AA0;
+  --red:#E30611; --red2:#FF2E3D; --red-glow:rgba(227,6,17,.45);
+  --shadow:0 20px 60px rgba(0,0,0,.5);
+  --radius:18px;
+}
+html.light{
+  --bg:#FAFAFA; --bg-2:#FFFFFF; --surface:rgba(0,0,0,.03); --surface-2:rgba(0,0,0,.05);
+  --border:rgba(0,0,0,.08); --text:#161618; --text-dim:#6E6E76;
+  --red:#E30611; --red2:#C4050E; --red-glow:rgba(227,6,17,.22);
+  --shadow:0 20px 50px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text);
+  overflow-x:hidden; transition:background .4s ease,color .4s ease;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.brand{font-family:'Manrope',system-ui,sans-serif;}
+a{color:inherit; text-decoration:none;}
+button{font-family:inherit; cursor:pointer;}
+::selection{background:var(--red); color:#fff;}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:10px;}
 
-        [data-theme="light"] {
-            /* Light Theme */
-            --bg-main: #f4f5f7;
-            --bg-surface: rgba(255, 255, 255, 0.8);
-            --bg-surface-hover: rgba(255, 255, 255, 1);
-            --text-main: #1a1a1a;
-            --text-secondary: #5a5a5a;
-            --accent-red: #E30611;
-            --accent-red-glow: rgba(227, 6, 17, 0.2);
-            --border-color: rgba(0, 0, 0, 0.05);
-            --glass-blur: blur(12px);
-        }
+/* ============ ФОН: сигнальная сетка МТС ============ */
+.bg-field{
+  position:fixed; inset:0; z-index:-2; overflow:hidden; background:var(--bg);
+}
+.bg-field::before{
+  content:''; position:absolute; inset:-20%;
+  background:
+    radial-gradient(600px circle at 15% 20%, var(--red-glow), transparent 60%),
+    radial-gradient(500px circle at 85% 75%, var(--red-glow), transparent 55%),
+    radial-gradient(700px circle at 50% 100%, rgba(227,6,17,.12), transparent 60%);
+  filter:blur(10px); animation:drift 22s ease-in-out infinite alternate;
+}
+.bg-field::after{
+  content:''; position:absolute; inset:0; opacity:.5;
+  background-image:linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:64px 64px; mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+@keyframes drift{
+  0%{transform:translate(0,0) scale(1);}
+  100%{transform:translate(-3%,2%) scale(1.06);}
+}
+@media (prefers-reduced-motion: reduce){ .bg-field::before{animation:none;} }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+/* ============ ЭКРАН ВХОДА ============ */
+#loginScreen{
+  position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+  padding:24px; background:var(--bg);
+}
+.login-card{
+  width:100%; max-width:420px; background:var(--surface); border:1px solid var(--border);
+  border-radius:24px; padding:40px 32px; backdrop-filter:blur(20px); box-shadow:var(--shadow);
+  animation:riseIn .6s cubic-bezier(.16,1,.3,1);
+}
+@keyframes riseIn{from{opacity:0; transform:translateY(24px) scale(.98);} to{opacity:1; transform:none;}}
+.login-logo{display:flex; align-items:center; gap:12px; margin-bottom:28px;}
+.logo-mark{
+  width:42px; height:42px; border-radius:11px; background:linear-gradient(145deg,var(--red2),var(--red));
+  display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:19px;
+  box-shadow:0 8px 24px var(--red-glow); flex-shrink:0;
+}
+.login-logo .brand{font-size:20px; font-weight:800; letter-spacing:-.02em;}
+.login-logo .sub{font-size:12px; color:var(--text-dim); font-weight:500;}
+.login-card h1{font-size:24px; font-weight:800; margin-bottom:6px; letter-spacing:-.02em;}
+.login-card p.hint{color:var(--text-dim); font-size:14px; margin-bottom:24px; line-height:1.5;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:.04em;}
+.field input{
+  width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--border);
+  background:var(--bg-2); color:var(--text); font-size:15px; outline:none; transition:border-color .2s, box-shadow .2s;
+}
+.field input:focus{border-color:var(--red); box-shadow:0 0 0 3px var(--red-glow);}
+#adminCodeField{display:none; animation:riseIn .35s ease;}
+#adminCodeField label{color:var(--red2);}
+.btn{
+  width:100%; padding:14px; border:none; border-radius:12px; font-weight:700; font-size:15px;
+  background:linear-gradient(135deg,var(--red2),var(--red)); color:#fff; margin-top:8px;
+  box-shadow:0 10px 28px var(--red-glow); transition:transform .15s, box-shadow .15s;
+}
+.btn:hover{transform:translateY(-2px); box-shadow:0 14px 34px var(--red-glow);}
+.btn:active{transform:translateY(0);}
+.btn.secondary{background:var(--surface-2); color:var(--text); box-shadow:none; border:1px solid var(--border);}
+.login-error{color:var(--red2); font-size:13px; margin-top:10px; min-height:18px; font-weight:600;}
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            transition: background-color 0.4s ease, color 0.4s ease;
-            overflow-x: hidden;
-        }
+/* ============ ПРИЛОЖЕНИЕ ============ */
+#app{display:none;}
+#app.show{display:block; animation:fadeApp .5s ease;}
+@keyframes fadeApp{from{opacity:0;} to{opacity:1;}}
 
-        /* --- UI Components --- */
-        .glass-panel {
-            background: var(--bg-surface);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
+header.topbar{
+  position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
+  padding:14px 22px; background:color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border); gap:16px; flex-wrap:wrap;
+}
+.brandbox{display:flex; align-items:center; gap:10px;}
+.brandbox .brand{font-size:17px; font-weight:800;}
+nav.mainnav{display:flex; align-items:center; gap:4px; flex-wrap:wrap;}
+.navlink{
+  padding:9px 14px; border-radius:10px; font-size:14px; font-weight:600; color:var(--text-dim);
+  transition:background .2s, color .2s; position:relative;
+}
+.navlink:hover, .navlink.active{background:var(--surface-2); color:var(--text);}
+.navlink.active{color:var(--red2);}
+.menu-wrap{position:relative;}
+.dots-btn{
+  padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface);
+  font-size:16px; font-weight:800; color:var(--text); letter-spacing:2px;
+}
+.dropdown{
+  position:absolute; top:calc(100% + 8px); left:0; min-width:230px; background:var(--bg-2);
+  border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:6px;
+  display:none; z-index:60;
+}
+.dropdown.open{display:block; animation:riseIn .2s ease;}
+.dropdown a, .dropdown button{
+  display:block; width:100%; text-align:left; padding:10px 12px; border-radius:9px; font-size:14px;
+  font-weight:600; background:none; border:none; color:var(--text);
+}
+.dropdown a:hover, .dropdown button:hover{background:var(--surface-2); color:var(--red2);}
+.topbar-right{display:flex; align-items:center; gap:10px;}
+.icon-btn{
+  width:38px; height:38px; border-radius:10px; border:1px solid var(--border); background:var(--surface);
+  display:flex; align-items:center; justify-content:center; font-size:16px; position:relative;
+}
+.badge-dot{
+  position:absolute; top:-4px; right:-4px; width:16px; height:16px; border-radius:50%; background:var(--red);
+  color:#fff; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg);
+}
+.user-chip{
+  display:flex; align-items:center; gap:8px; padding:6px 12px 6px 6px; border-radius:30px;
+  background:var(--surface); border:1px solid var(--border); font-size:13px; font-weight:700;
+}
+.user-avatar{
+  width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--red2),var(--red));
+  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff;
+}
+.role-tag{font-size:10px; font-weight:700; color:var(--red2); text-transform:uppercase; letter-spacing:.03em;}
 
-        .btn-primary {
-            background: var(--accent-red);
-            color: #fff;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px var(--accent-red-glow);
-            width: 100%;
-        }
+main{max-width:1100px; margin:0 auto; padding:32px 20px 100px;}
+.view{display:none; animation:riseIn .45s ease;}
+.view.active{display:block;}
+.page-head{margin-bottom:28px;}
+.page-head h1{font-size:clamp(26px,4vw,36px); font-weight:800; letter-spacing:-.02em; margin-bottom:6px;}
+.page-head p{color:var(--text-dim); font-size:15px; max-width:640px; line-height:1.5;}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; color:var(--red2);
+  text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px;
+}
+.eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--red); box-shadow:0 0 0 4px var(--red-glow);}
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--accent-red-glow);
-        }
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px;
+}
+.grid{display:grid; gap:16px;}
+.empty-state{
+  text-align:center; padding:60px 24px; color:var(--text-dim); border:1.5px dashed var(--border); border-radius:var(--radius);
+}
+.empty-state .em-icon{font-size:34px; margin-bottom:10px;}
+.empty-state h3{color:var(--text); font-size:17px; margin-bottom:6px;}
 
-        input {
-            width: 100%;
-            padding: 16px;
-            background: rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 16px;
-            margin-bottom: 16px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        [data-theme="dark"] input {
-            background: rgba(255,255,255,0.05);
-        }
-        input:focus {
-            border-color: var(--accent-red);
-        }
+/* --- Главная / новости --- */
+.news-list{display:flex; flex-direction:column; gap:14px;}
+.news-card{
+  border-radius:var(--radius); border:1px solid var(--border); background:var(--surface); padding:20px;
+  transition:border-color .2s, transform .2s;
+}
+.news-card:hover{border-color:var(--red-glow); transform:translateY(-2px);}
+.news-card .meta{font-size:12px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+.news-card h3{font-size:17px; margin-bottom:6px;}
+.news-card p{color:var(--text-dim); font-size:14px; line-height:1.55; white-space:pre-wrap;}
+.news-add{display:flex; flex-direction:column; gap:10px; margin-bottom:20px;}
+.news-add input, .news-add textarea{
+  width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:var(--bg-2);
+  color:var(--text); font-size:14px; font-family:inherit; outline:none; resize:vertical;
+}
+.news-add input:focus, .news-add textarea:focus{border-color:var(--red);}
 
-        /* --- Auth Screen --- */
-        #auth-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at top right, #1a0505, var(--bg-main));
-            z-index: 1000;
-            padding: 20px;
-        }
-        [data-theme="light"] #auth-screen {
-            background: radial-gradient(circle at top right, #ffebeb, var(--bg-main));
-        }
+/* --- Каталог агента-стажёра: таймлайн --- */
+.timeline{display:flex; flex-direction:column; gap:18px;}
+.step{
+  display:grid; grid-template-columns:56px 1fr; gap:18px; border-radius:var(--radius); border:1px solid var(--border);
+  background:var(--surface); padding:20px; position:relative; overflow:hidden;
+}
+.step-num{
+  width:44px; height:44px; border-radius:12px; background:linear-gradient(145deg,var(--red2),var(--red));
+  color:#fff; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 8px 20px var(--red-glow);
+}
+.step h3{font-size:17px; margin-bottom:6px;}
+.step p{color:var(--text-dim); font-size:14px; line-height:1.6; white-space:pre-line;}
+.step .media{margin-top:14px; border-radius:14px; overflow:hidden; border:1px solid var(--border); background:var(--bg-2);}
+.media-16x9{aspect-ratio:16/9; max-width:480px;}
+.media-9x16{aspect-ratio:9/16; max-width:220px;}
+.media-ph{
+  width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; color:var(--text-dim); font-size:12px; font-weight:600;
+  background:
+    repeating-linear-gradient(135deg, var(--surface-2) 0px, var(--surface-2) 10px, transparent 10px, transparent 20px);
+}
+.media-ph .mp-icon{font-size:22px;}
 
-        .auth-box {
-            width: 100%;
-            max-width: 400px;
-            padding: 40px 30px;
-            text-align: center;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+/* --- Конкурсы --- */
+.contest-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px;}
+.contest-card{
+  border-radius:var(--radius); border:1px solid var(--border); background:var(--surface); padding:24px;
+  display:flex; flex-direction:column; gap:14px; position:relative;
+}
+.contest-card::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:var(--radius) var(--radius) 0 0;
+  background:linear-gradient(90deg,var(--red),var(--red2));
+}
+.contest-title{font-size:19px; font-weight:800;}
+.contest-sub{font-size:13px; color:var(--text-dim); line-height:1.5;}
+.leaderboard{display:flex; flex-direction:column; gap:6px;}
+.lb-row{display:flex; align-items:center; justify-content:space-between; padding:9px 12px; border-radius:10px; background:var(--surface-2); font-size:14px;}
+.lb-row.top1{background:linear-gradient(90deg, var(--red-glow), transparent); font-weight:800;}
+.lb-name{display:flex; align-items:center; gap:8px;}
+.lb-pos{font-weight:800; color:var(--red2); width:18px;}
+.prize-box{padding:12px 14px; border-radius:12px; border:1px dashed var(--border); font-size:13px; color:var(--text-dim);}
+.prize-box b{color:var(--text); display:block; margin-bottom:2px; font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
+.countdown{font-size:13px; color:var(--red2); font-weight:700;}
+.admin-edit-row{display:flex; gap:6px; margin-top:6px;}
+.admin-edit-row input{flex:1; padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); font-size:13px;}
+.mini-btn{padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:12px; font-weight:700;}
+.mini-btn.danger{color:var(--red2); border-color:var(--red-glow);}
+.mini-btn.primary{background:linear-gradient(135deg,var(--red2),var(--red)); color:#fff; border:none;}
 
-        .auth-logo {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 30px;
-            letter-spacing: -1px;
-        }
-        .auth-logo span { color: var(--accent-red); }
+/* --- Чат --- */
+.chat-wrap{display:flex; flex-direction:column; height:64vh; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); overflow:hidden;}
+.chat-messages{flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px;}
+.msg{max-width:78%; padding:10px 14px; border-radius:14px; background:var(--surface-2); font-size:14px; line-height:1.45;}
+.msg.me{align-self:flex-end; background:linear-gradient(135deg,var(--red2),var(--red)); color:#fff;}
+.msg .m-meta{font-size:11px; opacity:.7; margin-bottom:3px; font-weight:700;}
+.chat-input{display:flex; gap:10px; padding:14px; border-top:1px solid var(--border);}
+.chat-input input{flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:var(--bg-2); color:var(--text); font-size:14px; outline:none;}
+.chat-input input:focus{border-color:var(--red);}
 
-        /* --- Main Layout --- */
-        #app-layout {
-            display: none;
-            min-height: 100vh;
-            padding-bottom: 80px; /* For mobile nav */
-        }
+/* --- Личный кабинет / админ --- */
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:24px;}
+.stat-card{border-radius:16px; border:1px solid var(--border); background:var(--surface); padding:18px;}
+.stat-card .num{font-size:28px; font-weight:800;}
+.stat-card .lbl{font-size:12px; color:var(--text-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+.agent-table{width:100%; border-collapse:collapse; font-size:14px;}
+.agent-table th{text-align:left; color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; border-bottom:1px solid var(--border);}
+.agent-table td{padding:10px; border-bottom:1px solid var(--border);}
+.status-pill{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; background:var(--surface-2);}
+.status-dot{width:8px; height:8px; border-radius:50%; background:#4ADE80;}
+.status-dot.off{background:#71717A;}
+.support-item{padding:14px; border-radius:12px; border:1px solid var(--border); background:var(--surface-2); margin-bottom:10px;}
+.support-item .m-meta{font-size:11px; color:var(--text-dim); font-weight:700; margin-bottom:4px;}
+section.admin-block{margin-bottom:36px;}
+section.admin-block h2{font-size:19px; margin-bottom:14px; font-weight:800;}
 
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            border-top: none;
-            margin-bottom: 20px;
-        }
+/* --- Поддержка modal / кнопка --- */
+.fab{
+  position:fixed; bottom:24px; right:24px; z-index:70; padding:14px 20px; border-radius:30px; border:none;
+  background:linear-gradient(135deg,var(--red2),var(--red)); color:#fff; font-weight:800; font-size:14px;
+  box-shadow:0 14px 30px var(--red-glow); display:flex; align-items:center; gap:8px;
+}
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); z-index:90;
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  width:100%; max-width:420px; background:var(--bg-2); border:1px solid var(--border); border-radius:20px;
+  padding:26px; box-shadow:var(--shadow); animation:riseIn .3s ease;
+}
+.modal-box h3{font-size:18px; margin-bottom:14px;}
+.modal-box textarea{
+  width:100%; min-height:110px; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+  background:var(--bg); color:var(--text); font-family:inherit; font-size:14px; resize:vertical; outline:none;
+}
+.modal-actions{display:flex; gap:10px; margin-top:14px;}
+.modal-actions .btn{margin-top:0;}
 
-        .logo {
-            font-size: 22px;
-            font-weight: 800;
-        }
-        .logo span { color: var(--accent-red); }
+.toast{
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); z-index:99;
+  background:var(--bg-2); border:1px solid var(--border); color:var(--text); padding:12px 20px; border-radius:12px;
+  font-size:13px; font-weight:600; box-shadow:var(--shadow); opacity:0; transition:opacity .3s, transform .3s; pointer-events:none;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
-        .header-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .theme-toggle {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        /* --- Navigation --- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 10px;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            z-index: 100;
-        }
-
-        .nav-item {
-            color: var(--text-secondary);
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: color 0.3s;
-            gap: 4px;
-        }
-
-        .nav-item svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
-
-        .nav-item.active {
-            color: var(--accent-red);
-        }
-
-        /* Desktop Adjustments */
-        @media (min-width: 768px) {
-            #app-layout { padding-bottom: 0; display: flex; flex-direction: column; }
-            .bottom-nav { 
-                position: static; 
-                border-radius: 20px; 
-                margin: 0 20px 20px 20px; 
-                width: auto; 
-                justify-content: center; 
-                gap: 40px; 
-            }
-            main { padding: 0 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
-        }
-
-        /* --- Pages --- */
-        .page {
-            display: none;
-            animation: fadeIn 0.4s ease;
-            padding: 0 20px 20px 20px;
-        }
-        .page.active { display: block; }
-
-        h2.section-title {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 25px;
-            color: var(--text-main);
-        }
-
-        /* Cards */
-        .card {
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 20px;
-        }
-        .card h3 { font-size: 18px; margin-bottom: 10px; color: var(--accent-red); }
-        .card p { font-size: 14px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 15px; }
-
-        /* Media Placeholders */
-        .media-placeholder {
-            background: rgba(0,0,0,0.2);
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 14px;
-            width: 100%;
-        }
-        [data-theme="light"] .media-placeholder { background: rgba(0,0,0,0.03); }
-        
-        .ratio-16-9 { aspect-ratio: 16 / 9; }
-        .ratio-9-16 { aspect-ratio: 9 / 16; max-width: 300px; margin: 0 auto; }
-
-        /* --- Contests --- */
-        .contest-timer {
-            text-align: center;
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 30px;
-            color: var(--accent-red);
-            text-shadow: 0 0 10px var(--accent-red-glow);
-        }
-
-        .contest-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .contest-card {
-            position: relative;
-            overflow: hidden;
-            border-top: 4px solid var(--accent-red);
-        }
-
-        .c-title { font-size: 20px; font-weight: 800; text-transform: uppercase; }
-        .c-stat { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); }
-        .c-stat span { font-weight: 600; }
-        
-        /* --- Chat --- */
-        .chat-container {
-            height: 60vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .chat-msg {
-            background: rgba(255,255,255,0.05);
-            padding: 12px;
-            border-radius: 12px;
-            max-width: 85%;
-            align-self: flex-start;
-        }
-        [data-theme="light"] .chat-msg { background: rgba(0,0,0,0.05); }
-        .chat-msg.self { align-self: flex-end; background: var(--accent-red-glow); }
-        .msg-author { font-size: 12px; color: var(--accent-red); font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-        .msg-text { font-size: 14px; }
-        .badge { background: var(--accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; }
-        
-        .chat-input-area {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .chat-input-area input { margin-bottom: 0; }
-        .btn-send { width: auto; padding: 0 20px; }
-
-        /* --- Admin --- */
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-        .admin-table th, .admin-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .admin-table th { color: var(--accent-red); font-weight: 700; }
-        .online-dot { width: 8px; height: 8px; background: #00ff00; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #00ff00; }
-        .offline-dot { width: 8px; height: 8px; background: #555; border-radius: 50%; display: inline-block; }
-
-        .hidden { display: none !important; }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-    </style>
+@media(max-width:640px){
+  main{padding:22px 14px 100px;}
+  header.topbar{padding:12px 14px;}
+  nav.mainnav{order:3; width:100%; overflow-x:auto; padding-top:10px; border-top:1px solid var(--border); margin-top:8px;}
+  .fab span{display:none;}
+  .fab{padding:14px 16px;}
+}
+</style>
 </head>
-<body data-theme="dark">
+<body>
 
-    <!-- Auth Screen -->
-    <div id="auth-screen">
-        <div class="glass-panel auth-box">
-            <div class="auth-logo">Портал <span>ПП</span></div>
-            <input type="text" id="login-lastname" placeholder="Фамилия" autocomplete="off">
-            <input type="text" id="login-firstname" placeholder="Имя" autocomplete="off">
-            <button class="btn-primary" onclick="handleLogin()">Войти в портал</button>
+<div class="bg-field"></div>
+
+<!-- ================= ЭКРАН ВХОДА ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-mark">М</div>
+      <div>
+        <div class="brand">Портал ПП</div>
+        <div class="sub">Обучение агентов-стажёров</div>
+      </div>
+    </div>
+    <h1>Добро пожаловать</h1>
+    <p class="hint">Напишите свою Фамилию и Имя, чтобы войти на портал.</p>
+    <div class="field">
+      <label>Фамилия</label>
+      <input type="text" id="loginLastName" autocomplete="off" placeholder="Например: Якушев">
+    </div>
+    <div class="field">
+      <label>Имя</label>
+      <input type="text" id="loginFirstName" autocomplete="off" placeholder="Например: Виктор">
+    </div>
+    <div class="field" id="adminCodeField">
+      <label>Код администратора</label>
+      <input type="password" id="adminCodeInput" autocomplete="off" placeholder="Введите код">
+    </div>
+    <button class="btn" id="loginBtn">Войти на портал</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ================= ПРИЛОЖЕНИЕ ================= -->
+<div id="app">
+  <header class="topbar">
+    <div class="brandbox">
+      <div class="logo-mark" style="width:34px;height:34px;font-size:15px;border-radius:9px;">М</div>
+      <span class="brand">Портал ПП</span>
+    </div>
+
+    <nav class="mainnav">
+      <a class="navlink" data-view="home">Главная</a>
+      <div class="menu-wrap">
+        <button class="dots-btn" id="catalogDots">⋮⋮⋮</button>
+        <div class="dropdown" id="catalogDropdown">
+          <a data-view="catalog-agent">🎓 Агент стажёр</a>
+          <a data-view="catalog-incoming">📞 Входящий вызов</a>
+          <a data-view="catalog-pko">🚪 Поквартирный обход</a>
+          <a data-view="catalog-contest">🏆 Конкурс</a>
         </div>
+      </div>
+      <a class="navlink" data-view="chat">Чат агентов</a>
+      <a class="navlink" id="adminNavLink" data-view="admin" style="display:none;">Личный кабинет</a>
+    </nav>
+
+    <div class="topbar-right">
+      <button class="icon-btn" id="themeToggle" title="Сменить тему">🌙</button>
+      <button class="icon-btn" id="notifBtn" title="Уведомления" style="display:none;">
+        🔔<span class="badge-dot" id="notifCount" style="display:none;">0</span>
+      </button>
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">–</div>
+        <div>
+          <div id="userName">—</div>
+          <div class="role-tag" id="userRole" style="display:none;">Старший Агент</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="logoutBtn" title="Выйти">⎋</button>
     </div>
+  </header>
 
-    <!-- Main App -->
-    <div id="app-layout">
-        <header class="glass-panel">
-            <div class="logo">Портал <span>ПП</span></div>
-            <div class="header-controls">
-                <span id="user-greeting" style="font-size: 14px; font-weight: 600;"></span>
-                <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
-            </div>
-        </header>
+  <main>
 
-        <main>
-            <!-- Главная -->
-            <div id="page-home" class="page active">
-                <h2 class="section-title">Главная</h2>
-                <div class="glass-panel card">
-                    <h3>Сводка Новостей</h3>
-                    <p>Добро пожаловать на новый обучающий портал!</p>
-                    <p><strong>Приветствуем команду:</strong> Костя, Виктор, Ростислав, Артём Фролов, Егор, Черепов, Хрулев, Санфиров и Александр Сергеевич Зайцев!</p>
-                    <p>Руководители Сергей Александрович и Руслан Русланович задали высокий темп на этот месяц. Всем успешных продаж, чистой визуализации и отличного настроения. Изучайте материалы и следите за конкурсами!</p>
-                </div>
-            </div>
+    <!-- ---------- ГЛАВНАЯ ---------- -->
+    <section class="view active" id="view-home">
+      <div class="page-head">
+        <div class="eyebrow">Главная</div>
+        <h1>Новости и жизнь портала</h1>
+        <p>Здесь появляются новости компании, важные объявления и развлекательные материалы для агентов.</p>
+      </div>
+      <div id="adminNewsForm" class="news-add card" style="display:none;">
+        <label style="font-size:12px;font-weight:700;color:var(--text-dim);">Добавить новость</label>
+        <input type="text" id="newsTitle" placeholder="Заголовок новости">
+        <textarea id="newsText" rows="3" placeholder="Текст новости..."></textarea>
+        <button class="btn" id="newsSubmit" style="margin-top:0;">Опубликовать</button>
+      </div>
+      <div class="news-list" id="newsList"></div>
+    </section>
 
-            <!-- Каталог Стажёра -->
-            <div id="page-trainee" class="page">
-                <h2 class="section-title">Агент-Стажёр</h2>
-                
-                <div class="glass-panel card">
-                    <h3>1. Стажировочный день: Программа Inventory и расклейка рекламных материалов</h3>
-                    <p>Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением Inventory, а также освоим базовые принципы работы на территории. Вы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании.</p>
-                    <div class="media-placeholder ratio-16-9">Изображение 16:9</div>
-                </div>
+    <!-- ---------- КАТАЛОГ: АГЕНТ СТАЖЁР ---------- -->
+    <section class="view" id="view-catalog-agent">
+      <div class="page-head">
+        <div class="eyebrow">Каталог · Обучение</div>
+        <h1>Агент стажёр</h1>
+        <p>Пошаговая программа первого рабочего дня — от знакомства с Inventory до вечернего отчёта.</p>
+      </div>
+      <div class="timeline" id="agentTimeline"></div>
+    </section>
 
-                <div class="glass-panel card">
-                    <h3>2. Программа Inventory: Статистика за месяц</h3>
-                    <p>Приложение Inventory — это ваш личный кабинет и главный помощник. В этом разделе вы научитесь отслеживать свои результаты.<br>
-                    <strong>Аналитика:</strong> Следите за количеством пройденных домов и выполненных задач в режиме реального времени.<br>
-                    <strong>Прогресс:</strong> Изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии. Контроль цифр — залог высокого дохода.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+    <!-- ---------- КАТАЛОГ: ВХОДЯЩИЙ ВЫЗОВ (пусто) ---------- -->
+    <section class="view" id="view-catalog-incoming">
+      <div class="page-head">
+        <div class="eyebrow">Каталог</div>
+        <h1>Входящий вызов</h1>
+        <p>Материалы по работе с входящими звонками от потенциальных абонентов.</p>
+      </div>
+      <div class="empty-state">
+        <div class="em-icon">📞</div>
+        <h3>Раздел готовится</h3>
+        <div>Материалы скоро появятся здесь.</div>
+      </div>
+    </section>
 
-                <div class="glass-panel card">
-                    <h3>3. Адреса твоей территории</h3>
-                    <p>В этом блоке мы разбираем, как работать с адресной базой. Вы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Четкое следование маршруту экономит ваши силы и увеличивает охват.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+    <!-- ---------- КАТАЛОГ: ПОКВАРТИРНЫЙ ОБХОД (пусто) ---------- -->
+    <section class="view" id="view-catalog-pko">
+      <div class="page-head">
+        <div class="eyebrow">Каталог</div>
+        <h1>Поквартирный обход</h1>
+        <p>Материалы по технике продаж на поквартирном обходе.</p>
+      </div>
+      <div class="empty-state">
+        <div class="em-icon">🚪</div>
+        <h3>Раздел готовится</h3>
+        <div>Материалы скоро появятся здесь.</div>
+      </div>
+    </section>
 
-                <div class="glass-panel card">
-                    <h3>4. Чек-лист рабочего дня</h3>
-                    <p>Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист рабочего дня включает в себя все этапы: от планирования рабочего дня до отправки вечернего отчета после его завершения. Привычка сверяться с чек-листами поможет вам автоматизировать рутину, избежать ошибок и всегда выполнять работу без замечаний от руководителя.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+    <!-- ---------- КАТАЛОГ: КОНКУРС ---------- -->
+    <section class="view" id="view-catalog-contest">
+      <div class="page-head">
+        <div class="eyebrow">Каталог · Конкурс</div>
+        <h1>Конкурсы месяца</h1>
+        <p class="countdown" id="contestCountdown">Конкурс идёт до 28 августа, 14:00</p>
+      </div>
+      <div class="contest-grid" id="contestGrid"></div>
+    </section>
 
-                <div class="glass-panel card">
-                    <h3>5. Работа в полях: Открытие чек-листа для визуализации</h3>
-                    <p>Вы прибыли на адрес — время начинать работу. Подойдя к нужному дому, первым делом откройте чек-лист в приложении. Это действие фиксирует начало вашей работы на конкретном адресе. Без открытого чек-листа проделанная работа не будет учтена!</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+    <!-- ---------- ЧАТ АГЕНТОВ ---------- -->
+    <section class="view" id="view-chat">
+      <div class="page-head">
+        <div class="eyebrow">Общение</div>
+        <h1>Чат агентов</h1>
+        <p>Общий чат для всех агентов, которые входили на портал.</p>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+          <input type="text" id="chatInput" placeholder="Написать сообщение...">
+          <button class="btn" id="chatSend" style="width:auto; margin-top:0; padding:12px 22px;">Отправить</button>
+        </div>
+      </div>
+    </section>
 
-                <div class="glass-panel card">
-                    <h3>6. Визуализация предподъездной доски объявлений</h3>
-                    <p>Обратите внимание на доску объявлений перед подъездом. Разместите рекламу ровно, аккуратно и на самом видном месте. Убедитесь, что листовка надежно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+    <!-- ---------- ЛИЧНЫЙ КАБИНЕТ (АДМИН) ---------- -->
+    <section class="view" id="view-admin">
+      <div class="page-head">
+        <div class="eyebrow">Личный кабинет</div>
+        <h1>Панель управления</h1>
+        <p>Кто заходил на портал, статусы онлайн, конкурсы, призы и обращения агентов.</p>
+      </div>
 
-                <div class="glass-panel card">
-                    <h3>7. Визуализация в подъезде — щитки, коробки, трубостойки</h3>
-                    <p>Работа внутри подъезда требует особого внимания. Пройдите по этажам и обратите внимание на места прокладки коммуникаций.<br>
-                    <strong>Слаботочные щитки и коробки:</strong> Размещайте листовки строго в отведенных местах.<br>
-                    <strong>Трубостойки:</strong> Убедитесь, что визуализация размещена аккуратно и не перекрывает доступ к оборудованию. Листовка должна быть заметна каждому, кто обратит внимание на сети.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Всего агентов</div></div>
+        <div class="stat-card"><div class="num" id="statOnline">0</div><div class="lbl">Онлайн сейчас</div></div>
+        <div class="stat-card"><div class="num" id="statMsgs">0</div><div class="lbl">Обращений в поддержку</div></div>
+      </div>
 
-                <div class="glass-panel card">
-                    <h3>8. Фотоотчёт</h3>
-                    <p>Каждое ваше действие должно быть зафиксировано. Фотография — это подтверждение качества работы. Сфотографируйте каждую листовку. Делайте светлые и четкие снимки. В кадр должен полностью попадать материал и часть пространства (номер квартиры, этаж или контуры щитка).</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+      <section class="admin-block">
+        <h2>Агенты портала</h2>
+        <div class="card" style="overflow-x:auto;">
+          <table class="agent-table">
+            <thead><tr><th>Имя Фамилия</th><th>Статус</th><th>Последний визит</th></tr></thead>
+            <tbody id="agentTableBody"></tbody>
+          </table>
+        </div>
+      </section>
 
-                <div class="glass-panel card">
-                    <h3>9. Почтовые ящики</h3>
-                    <p>Раскидка листовок по почтовым ящикам — эффективный инструмент. Вкладывайте листовки так, чтобы они не торчали и не падали. Действуйте системно: ни один ящик не должен быть пропущен, если иное не указано. Относитесь к имуществу с уважением.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+      <section class="admin-block">
+        <h2>Обращения в поддержку</h2>
+        <div id="supportList"></div>
+      </section>
+    </section>
 
-                <div class="glass-panel card">
-                    <h3>10. Закрытие чек-листа после пройденного дома</h3>
-                    <p>Работа завершена только тогда, когда вы закрыли чек-лист. Проверьте все пункты (доска, этажи, ящики, фото). Отметьте, в каких подъездах разместили рекламу, были ли листовки конкурентов, подошёл ли ключ. Сохраните результат. Только после этого переходите к следующему адресу.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+  </main>
 
-                <div class="glass-panel card">
-                    <h3>11. Вечерний отчёт за пройденный рабочий день</h3>
-                    <p>Рабочий день заканчивается подведением итогов. Своевременная отправка отчета позволяет руководителю оценить эффективность.</p>
-                    <ul style="padding-left: 20px; font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.6;">
-                        <li><strong>В:</strong> Визуализация (пройденные квартиры)</li>
-                        <li><strong>Дмх:</strong> Домовой Обход (поквартирный)</li>
-                        <li><strong>Од:</strong> Открытые двери</li>
-                        <li><strong>Вхз:</strong> Входяшка (звонки по листовке)</li>
-                        <li><strong>Птнц:</strong> Потенциальный абонент</li>
-                        <li><strong>П:</strong> Продажи (конвергент - 2, доп - 1)</li>
-                        <li><strong>Пр:</strong> Продажа роутера</li>
-                        <li><strong>Пс:</strong> Продажа приставки</li>
-                    </ul>
-                    <p>Здесь ты пишешь список домов которые ты прошел за день.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
+  <button class="fab" id="supportFab">💬 <span>Поддержка</span></button>
+</div>
 
-                <div class="glass-panel card">
-                    <h3>12. Вечерний фотоотчёт по визуализации</h3>
-                    <p>Финальный этап смены. Вам необходимо загрузить все сделанные за день фотографии в специальный чат. Убедитесь, что они подписаны по адресам, загрузились без ошибок и соответствуют регламенту в закреплённом сообщении. Качественный фотоотчет гарантирует отсутствие вопросов.</p>
-                    <div class="media-placeholder ratio-9-16">Видео 9:16</div>
-                </div>
-            </div>
-
-            <!-- Входящий Вызов -->
-            <div id="page-inbound" class="page">
-                <h2 class="section-title">Входящий Вызов</h2>
-                <div class="glass-panel card">
-                    <p style="text-align: center;">Информация для этого раздела скоро появится.</p>
-                </div>
-            </div>
-
-            <!-- Поквартирный обход -->
-            <div id="page-d2d" class="page">
-                <h2 class="section-title">Поквартирный Обход</h2>
-                <div class="glass-panel card">
-                    <p style="text-align: center;">Информация для этого раздела скоро появится.</p>
-                </div>
-            </div>
-
-            <!-- Конкурс -->
-            <div id="page-contest" class="page">
-                <h2 class="section-title">Конкурсы</h2>
-                <div class="contest-timer" id="timer-display">Загрузка таймера...</div>
-                
-                <div class="contest-grid">
-                    <div class="glass-panel card contest-card">
-                        <div class="c-title">Рождённый рассклейщик</div>
-                        <p style="margin-top:10px;">Агент, расклеивший больше всего РМ за месяц.</p>
-                        <div class="c-stat">
-                            <span>Лидер: <span id="c1-leader">Загрузка...</span> (<span id="c1-score">0</span> шт)</span>
-                        </div>
-                        <div class="c-stat">
-                            <span style="color:var(--accent-red)">Приз: <span id="c1-prize">Ожидается...</span></span>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel card contest-card">
-                        <div class="c-title">Волк ПКО</div>
-                        <p style="margin-top:10px;">Агент с наибольшим числом продаж на поквартирном обходе.</p>
-                        <div class="c-stat">
-                            <span>Лидер: <span id="c2-leader">Загрузка...</span> (<span id="c2-score">0</span> шт)</span>
-                        </div>
-                        <div class="c-stat">
-                            <span style="color:var(--accent-red)">Приз: <span id="c2-prize">Ожидается...</span></span>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel card contest-card">
-                        <div class="c-title">Джордан Белфорт</div>
-                        <p style="margin-top:10px;">Агент с наибольшим числом продаж на входящем звонке.</p>
-                        <div class="c-stat">
-                            <span>Лидер: <span id="c3-leader">Загрузка...</span> (<span id="c3-score">0</span> шт)</span>
-                        </div>
-                        <div class="c-stat">
-                            <span style="color:var(--accent-red)">Приз: <span id="c3-prize">Ожидается...</span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Чат -->
-            <div id="page-chat" class="page">
-                <h2 class="section-title">Чат Агентов</h2>
-                <div class="glass-panel card chat-container">
-                    <div class="chat-messages" id="chat-messages-box">
-                        <!-- Messages render here -->
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chat-input" placeholder="Напишите сообщение...">
-                        <button class="btn-primary btn-send" onclick="sendChatMessage()">➤</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Поддержка -->
-            <div id="page-support" class="page">
-                <h2 class="section-title">Поддержка</h2>
-                <div class="glass-panel card">
-                    <h3>Предложения и идеи</h3>
-                    <p>Напишите, что бы вы хотели добавить или улучшить на портале. Уведомление придет руководителю.</p>
-                    <textarea id="support-text" rows="5" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.05); color: var(--text-main); font-size: 14px; resize: none; margin-bottom: 15px;"></textarea>
-                    <button class="btn-primary" onclick="sendSupport()">Отправить</button>
-                </div>
-            </div>
-
-            <!-- Админ Панель (Только для Якушева Виктора) -->
-            <div id="page-admin" class="page hidden">
-                <h2 class="section-title">Личный Кабинет (Admin)</h2>
-                
-                <div class="glass-panel card">
-                    <h3>Редактор Конкурсов</h3>
-                    <div style="display: grid; gap: 15px; margin-top: 15px;">
-                        <div>
-                            <label>Рождённый рассклейщик (Лидер / Счёт / Приз)</label>
-                            <div style="display:flex; gap:10px; margin-top:5px;">
-                                <input type="text" id="edit-c1-leader" placeholder="Имя">
-                                <input type="number" id="edit-c1-score" placeholder="Счёт" style="width:100px;">
-                                <input type="text" id="edit-c1-prize" placeholder="Приз">
-                            </div>
-                        </div>
-                        <div>
-                            <label>Волк ПКО (Лидер / Счёт / Приз)</label>
-                            <div style="display:flex; gap:10px; margin-top:5px;">
-                                <input type="text" id="edit-c2-leader" placeholder="Имя">
-                                <input type="number" id="edit-c2-score" placeholder="Счёт" style="width:100px;">
-                                <input type="text" id="edit-c2-prize" placeholder="Приз">
-                            </div>
-                        </div>
-                        <div>
-                            <label>Джордан Белфорт (Лидер / Счёт / Приз)</label>
-                            <div style="display:flex; gap:10px; margin-top:5px;">
-                                <input type="text" id="edit-c3-leader" placeholder="Имя">
-                                <input type="number" id="edit-c3-score" placeholder="Счёт" style="width:100px;">
-                                <input type="text" id="edit-c3-prize" placeholder="Приз">
-                            </div>
-                        </div>
-                        <button class="btn-primary" onclick="saveContests()">Сохранить Конкурсы</button>
-                    </div>
-                </div>
-
-                <div class="glass-panel card" style="overflow-x: auto;">
-                    <h3>Активность Агентов</h3>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Имя Агента</th>
-                                <th>Статус</th>
-                                <th>Последний вход</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-users-table">
-                            <!-- Users render here -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="glass-panel card">
-                    <h3>Запросы в Поддержку</h3>
-                    <div id="admin-support-list" style="margin-top: 15px; display:flex; flex-direction:column; gap:10px;">
-                        <!-- Support msgs -->
-                    </div>
-                </div>
-            </div>
-
-        </main>
-
-        <nav class="glass-panel bottom-nav">
-            <a class="nav-item active" onclick="nav('page-home', this)">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Главная
-            </a>
-            <a class="nav-item" onclick="nav('page-trainee', this)">
-                <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>Стажёр
-            </a>
-            <a class="nav-item" onclick="nav('page-contest', this)">
-                <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 003.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM7 10.82C5.84 10.4 5 9.3 5 8V7h2v3.82zM19 8c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>Конкурс
-            </a>
-            <a class="nav-item" onclick="nav('page-chat', this)">
-                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Чат
-            </a>
-            <a class="nav-item" onclick="nav('page-support', this)">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Саппорт
-            </a>
-            <a class="nav-item hidden" id="nav-admin" onclick="nav('page-admin', this)">
-                <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>Кабинет
-            </a>
-        </nav>
+<!-- ---------- МОДАЛКА ПОДДЕРЖКИ ---------- -->
+<div class="modal-overlay" id="supportModal">
+  <div class="modal-box">
+    <h3>Написать в поддержку</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Расскажите, что бы вы хотели ещё увидеть на портале, или сообщите о проблеме.</p>
+    <textarea id="supportText" placeholder="Ваше сообщение..."></textarea>
+    <div class="modal-actions">
+      <button class="btn secondary" id="supportCancel">Отмена</button>
+      <button class="btn" id="supportSend">Отправить</button>
     </div>
+  </div>
+</div>
 
-    <!-- Firebase SDK (v10.8.0 modular) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<div class="toast" id="toast"></div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD_giYLNx_5Y3F8FqeF_TMRfqsikWuua6k",
-            authDomain: "portall-pp-e2101.firebaseapp.com",
-            projectId: "portall-pp-e2101",
-            storageBucket: "portall-pp-e2101.firebasestorage.app",
-            messagingSenderId: "378340444786",
-            appId: "1:378340444786:web:b3832b6b3ded6102cfd0eb"
-        };
+<!-- ================= FIREBASE ================= -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD_giYLNx_5Y3F8FqeF_TMRfqsikWuua6k",
+  authDomain: "portall-pp-e2101.firebaseapp.com",
+  projectId: "portall-pp-e2101",
+  storageBucket: "portall-pp-e2101.firebasestorage.app",
+  messagingSenderId: "378340444786",
+  appId: "1:378340444786:web:b3832b6b3ded6102cfd0eb"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const FieldValue = firebase.firestore.FieldValue;
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+/* ============ КОНСТАНТЫ ============ */
+const ADMIN_FULLNAME = "якушев виктор";
+const ADMIN_CODE = "1808";
+const ONLINE_WINDOW_MS = 45 * 1000;
+const HEARTBEAT_MS = 20 * 1000;
+const CONTEST_DEADLINE = new Date("2026-08-28T14:00:00");
 
-        let currentUser = null;
-        let isAdmin = false;
+const CONTEST_DEFS = [
+  { id:"rassklejshik", title:"Рождённый расклейщик", subtitle:"Агент, который расклеил больше всего рекламных материалов за месяц.", unit:"визуализаций" },
+  { id:"volk_pko", title:"Волк ПКО", subtitle:"Агент с наибольшим количеством продаж на поквартирном обходе за месяц.", unit:"продаж" },
+  { id:"jordan_belfort", title:"Джордан Белфорт", subtitle:"Агент с наибольшим количеством продаж на входящем звонке за месяц.", unit:"продаж" },
+];
 
-        // Global functions attachment
-        window.toggleTheme = () => {
-            const body = document.body;
-            const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('portalTheme', newTheme);
-        };
+const AGENT_STEPS = [
+  {t:"Стажировочный день: программа Inventory и расклейка рекламных материалов",
+   d:"Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением Inventory, а также освоим базовые принципы работы на территории.\n\nВы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании.", media:"16:9"},
+  {t:"Программа Inventory: статистика за месяц",
+   d:"Приложение Inventory — это ваш личный кабинет и главный помощник.\n\nАналитика: следите за количеством пройденных домов и выполненных задач в режиме реального времени.\nПрогресс: изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии. Контроль цифр — залог высокого дохода.", media:"9:16"},
+  {t:"Адреса твоей территории",
+   d:"Вы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Чёткое следование маршруту экономит ваши силы и увеличивает охват.", media:"9:16"},
+  {t:"Чек-лист рабочего дня",
+   d:"Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист включает все этапы: от планирования дня до отправки вечернего отчёта после его завершения.\n\nПривычка сверяться с чек-листами поможет автоматизировать рутину, избежать ошибок и всегда выполнять работу без замечаний от руководителя.", media:"9:16"},
+  {t:"Работа в полях: открытие чек-листа для визуализации",
+   d:"Вы прибыли на адрес — время начинать работу. Подойдя к нужному дому, первым делом откройте чек-лист в приложении.\n\nЭто действие фиксирует начало вашей работы на конкретном адресе. Без открытого чек-листа проделанная работа не будет учтена!", media:"9:16"},
+  {t:"Визуализация предподъездной доски объявлений",
+   d:"Обратите внимание на доску объявлений перед подъездом. Разместите рекламу ровно, аккуратно и на самом видном месте.\n\nУбедитесь, что листовка надёжно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании.", media:"9:16"},
+  {t:"Визуализация в подъезде — щитки, коробки, трубостойки",
+   d:"Работа внутри подъезда требует особого внимания. Пройдите по этажам и обратите внимание на места прокладки коммуникаций.\n\nСлаботочные щитки и распределительные коробки: размещайте листовки строго в отведённых для этого местах.\nТрубостойки: убедитесь, что визуализация размещена аккуратно и не перекрывает доступ к оборудованию.", media:"9:16"},
+  {t:"Фотоотчёт",
+   d:"Каждое ваше действие должно быть зафиксировано. Фотография — это подтверждение качества вашей работы. Сфотографируйте каждую листовку.\n\nДелайте светлые и чёткие снимки. В кадр должен полностью попадать размещённый материал и часть окружающего пространства (номер квартиры, этаж или контуры щитка), чтобы можно было легко определить место.", media:"9:16"},
+  {t:"Почтовые ящики",
+   d:"Раскидка листовок по почтовым ящикам — классический и эффективный инструмент. Вкладывайте листовки так, чтобы они не торчали наполовину и не падали на пол.\n\nДействуйте системно: ни один ящик не должен быть пропущен, если иное не указано в вашем маршрутном листе. Относитесь к общедомовому имуществу с уважением.", media:"9:16"},
+  {t:"Закрытие чек-листа после пройденного дома",
+   d:"Работа в доме завершена только тогда, когда вы закрыли чек-лист в системе. Проверьте, все ли пункты выполнены (доска, этажи, ящики, фото).\n\nОтметьте в чек-листе, в каких подъездах вы разместили рекламу, были ли там листовки конкурентов, и подошёл ли ключ-вездеход к домофону. Сохраните результат и завершите чек-лист — дом перейдёт в статус «Завершён». Только после этого переходите к следующему адресу.", media:"9:16"},
+  {t:"Вечерний отчёт за пройденный рабочий день",
+   d:"Рабочий день агента заканчивается подведением итогов — сводкой активности: сколько домов пройдено и какие результаты получены.\n\nВ — Визуализация (пройденные квартиры при размещении рекламы)\nДмх — Домовой обход (квартиры при поквартирном обходе)\nОд — Открытые двери\nВхз — Входящие звонки по листовке\nПтнц — Потенциальный абонент\nП — Продажи (конвергент — 2 услуги, допродажа — 1 услуга)\nПр — Продажа роутера\nПс — Продажа приставки\n\nСвоевременная отправка отчёта позволяет руководителю оценить эффективность дня и помочь с планом на завтра.", media:"9:16"},
+  {t:"Вечерний фотоотчёт по сделанной визуализации",
+   d:"Финальный этап смены — фотоотчёт. Загрузите все сделанные за день фотографии визуализации (доски, щитки, распределительные коробки) в специальный чат.\n\nУбедитесь, что фотографии подписаны по нужным адресам, загрузились без ошибок и соответствуют регламенту, который находится в закреплённом сообщении. Качественный фотоотчёт гарантирует отсутствие вопросов к проделанной работе.", media:"9:16"},
+];
 
-        window.nav = (pageId, element) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if(element) element.classList.add('active');
-        };
+/* ============ СОСТОЯНИЕ ============ */
+let currentAgent = null; // {id, fullName, firstName, lastName, role}
+let heartbeatTimer = null;
+let unsubNews=null, unsubChat=null, unsubAgents=null, unsubSupport=null, unsubContests=null;
+let contestsCache = {};
 
-        window.handleLogin = () => {
-            const ln = document.getElementById('login-lastname').value.trim();
-            const fn = document.getElementById('login-firstname').value.trim();
-            
-            if (!ln || !fn) {
-                alert("Пожалуйста, введите Фамилию и Имя.");
-                return;
-            }
+/* ============ УТИЛИТЫ ============ */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function normName(s){ return (s||"").trim().toLowerCase().replace(/\s+/g," "); }
+function agentIdFor(last,first){ return normName(last+" "+first).replace(/\s+/g,"_"); }
+function initials(fullName){
+  return fullName.split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
+}
+function timeAgo(date){
+  if(!date) return "никогда";
+  const s = Math.floor((Date.now()-date.getTime())/1000);
+  if(s<60) return "только что";
+  if(s<3600) return Math.floor(s/60)+" мин назад";
+  if(s<86400) return Math.floor(s/3600)+" ч назад";
+  return date.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
 
-            const fullName = `${ln} ${fn}`;
-            
-            // Check Admin
-            if (fullName.toLowerCase() === "якушев виктор") {
-                const pin = prompt("Введите код администратора:");
-                if (pin === "1808") {
-                    isAdmin = true;
-                } else {
-                    alert("Неверный код доступа!");
-                    return;
-                }
-            }
+/* ============ ТЕМА ============ */
+function applyTheme(t){
+  document.documentElement.classList.toggle('light', t==='light');
+  document.getElementById('themeToggle').textContent = t==='light' ? '☀️' : '🌙';
+  localStorage.setItem('pp_theme', t);
+}
+(function initTheme(){
+  applyTheme(localStorage.getItem('pp_theme') || 'dark');
+})();
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  applyTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light');
+});
 
-            currentUser = {
-                name: fullName,
-                isAdmin: isAdmin,
-                lastLogin: new Date().toISOString()
-            };
+/* ============ НАВИГАЦИЯ ============ */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(l=>l.classList.toggle('active', l.dataset.view===id));
+  document.getElementById('catalogDropdown').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('[data-view]').forEach(el=>{
+  el.addEventListener('click', ()=> showView(el.dataset.view));
+});
+document.getElementById('catalogDots').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  document.getElementById('catalogDropdown').classList.toggle('open');
+});
+document.addEventListener('click', ()=> document.getElementById('catalogDropdown').classList.remove('open'));
 
-            // Save session
-            localStorage.setItem('portalUser', JSON.stringify(currentUser));
-            
-            // Write to Firebase Users
-            try {
-                const userRef = ref(db, 'users/' + fullName.replace(/\s+/g, '_'));
-                set(userRef, {
-                    name: fullName,
-                    online: true,
-                    lastActive: serverTimestamp()
-                });
+/* ============ ЛОГИН ============ */
+const lastNameInput = document.getElementById('loginLastName');
+const firstNameInput = document.getElementById('loginFirstName');
+const adminCodeField = document.getElementById('adminCodeField');
 
-                // Set offline on disconnect
-                // (Note: onDisconnect requires full setup, for now we manage locally)
-            } catch (e) {
-                console.log("Firebase rules might require config, working locally.", e);
-            }
+function checkAdminReveal(){
+  const isAdmin = normName(lastNameInput.value+" "+firstNameInput.value) === ADMIN_FULLNAME;
+  adminCodeField.style.display = isAdmin ? 'block' : 'none';
+}
+lastNameInput.addEventListener('input', checkAdminReveal);
+firstNameInput.addEventListener('input', checkAdminReveal);
 
-            completeLoginUI();
-        };
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+[lastNameInput, firstNameInput, document.getElementById('adminCodeInput')].forEach(inp=>{
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+});
 
-        function completeLoginUI() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-layout').style.display = 'block';
-            document.getElementById('user-greeting').innerText = currentUser.name;
+async function doLogin(){
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  const last = lastNameInput.value.trim();
+  const first = firstNameInput.value.trim();
+  if(!last || !first){ errEl.textContent = 'Заполните Фамилию и Имя.'; return; }
 
-            if (currentUser.isAdmin) {
-                document.getElementById('nav-admin').classList.remove('hidden');
-                document.getElementById('page-admin').classList.remove('hidden');
-                loadAdminData();
-            }
+  const isAdminName = normName(last+" "+first) === ADMIN_FULLNAME;
+  let role = 'agent';
+  if(isAdminName){
+    const code = document.getElementById('adminCodeInput').value.trim();
+    if(code !== ADMIN_CODE){ errEl.textContent = 'Неверный код администратора.'; return; }
+    role = 'admin';
+  }
 
-            listenToChat();
-            listenToContests();
-        }
+  const fullName = last+" "+first;
+  const id = agentIdFor(last, first);
 
-        // Check persistent login
-        window.onload = () => {
-            const savedTheme = localStorage.getItem('portalTheme') || 'dark';
-            document.body.setAttribute('data-theme', savedTheme);
+  try{
+    await db.collection('agents').doc(id).set({
+      firstName:first, lastName:last, fullName, role,
+      lastSeen: FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp()
+    }, {merge:true});
+  }catch(e){ console.error(e); }
 
-            const savedUser = localStorage.getItem('portalUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                isAdmin = currentUser.isAdmin;
-                
-                // Update online status
-                try {
-                    update(ref(db, 'users/' + currentUser.name.replace(/\s+/g, '_')), {
-                        online: true,
-                        lastActive: serverTimestamp()
-                    });
-                } catch(e){}
+  currentAgent = {id, fullName, firstName:first, lastName:last, role};
+  localStorage.setItem('pp_session', JSON.stringify(currentAgent));
+  enterApp();
+}
 
-                completeLoginUI();
-            }
-            startTimer();
-        };
+function enterApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('userName').textContent = currentAgent.fullName;
+  document.getElementById('userAvatar').textContent = initials(currentAgent.fullName);
+  const isAdmin = currentAgent.role==='admin';
+  document.getElementById('userRole').style.display = isAdmin ? 'block':'none';
+  document.getElementById('adminNavLink').style.display = isAdmin ? 'inline-block':'none';
+  document.getElementById('adminNewsForm').style.display = isAdmin ? 'flex':'none';
+  document.getElementById('notifBtn').style.display = isAdmin ? 'flex':'none';
 
-        // --- Timer ---
-        function startTimer() {
-            const endDate = new Date("2026-08-28T14:00:00").getTime();
-            setInterval(() => {
-                const now = new Date().getTime();
-                const diff = endDate - now;
-                if (diff < 0) {
-                    document.getElementById("timer-display").innerText = "Конкурс завершён!";
-                    return;
-                }
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                document.getElementById("timer-display").innerText = `До конца: ${d}д ${h}ч ${m}м`;
-            }, 60000); // update every minute
-            // Run once immediately
-            const diff = endDate - new Date().getTime();
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            if(diff > 0) document.getElementById("timer-display").innerText = `До конца: ${d}д ${h}ч ${m}м`;
-        }
+  showView('home');
+  renderAgentTimeline();
+  startHeartbeat();
+  attachNewsListener();
+  attachChatListener();
+  attachContestListener();
+  if(isAdmin){ attachAgentsListener(); attachSupportListener(); }
+}
 
-        // --- Chat Logic ---
-        window.sendChatMessage = () => {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if (!text) return;
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  localStorage.removeItem('pp_session');
+  clearInterval(heartbeatTimer);
+  [unsubNews,unsubChat,unsubAgents,unsubSupport,unsubContests].forEach(u=>u&&u());
+  location.reload();
+});
 
-            try {
-                const chatRef = ref(db, 'chat');
-                push(chatRef, {
-                    author: currentUser.name,
-                    text: text,
-                    isAdmin: currentUser.isAdmin,
-                    timestamp: serverTimestamp()
-                });
-            } catch (e) {
-                // Local Fallback if Firebase blocks write
-                renderMessage({author: currentUser.name, text: text, isAdmin: currentUser.isAdmin});
-            }
-            input.value = '';
-        };
+/* восстановление сессии при обновлении страницы */
+(function restoreSession(){
+  const raw = localStorage.getItem('pp_session');
+  if(raw){
+    try{
+      currentAgent = JSON.parse(raw);
+      enterApp();
+      return;
+    }catch(e){}
+  }
+})();
 
-        function listenToChat() {
-            try {
-                const chatRef = ref(db, 'chat');
-                onValue(chatRef, (snapshot) => {
-                    const box = document.getElementById('chat-messages-box');
-                    box.innerHTML = '';
-                    snapshot.forEach((child) => {
-                        renderMessage(child.val());
-                    });
-                    box.scrollTop = box.scrollHeight;
-                });
-            } catch(e) {}
-        }
+/* ============ ПРИСУТСТВИЕ (online) ============ */
+function startHeartbeat(){
+  const beat = ()=> db.collection('agents').doc(currentAgent.id).set({
+    lastSeen: FieldValue.serverTimestamp()
+  }, {merge:true}).catch(()=>{});
+  beat();
+  heartbeatTimer = setInterval(beat, HEARTBEAT_MS);
+}
 
-        function renderMessage(msg) {
-            const box = document.getElementById('chat-messages-box');
-            const div = document.createElement('div');
-            const isMe = msg.author === currentUser.name;
-            div.className = `chat-msg ${isMe ? 'self' : ''}`;
-            
-            const badge = msg.isAdmin ? `<span class="badge">Старший Агент</span>` : '';
-            div.innerHTML = `
-                <div class="msg-author">${msg.author} ${badge}</div>
-                <div class="msg-text">${msg.text}</div>
-            `;
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
+/* ============ ГЛАВНАЯ / НОВОСТИ ============ */
+function attachNewsListener(){
+  unsubNews = db.collection('news').orderBy('createdAt','desc').limit(30)
+    .onSnapshot(snap=>{
+      const list = document.getElementById('newsList');
+      if(snap.empty){
+        list.innerHTML = `<div class="empty-state"><div class="em-icon">📰</div><h3>Новостей пока нет</h3><div>Скоро здесь появятся новости и объявления.</div></div>`;
+        return;
+      }
+      list.innerHTML = '';
+      snap.forEach(doc=>{
+        const n = doc.data();
+        const date = n.createdAt?.toDate ? n.createdAt.toDate() : null;
+        const el = document.createElement('div');
+        el.className='news-card';
+        el.innerHTML = `<div class="meta">${date ? date.toLocaleString('ru-RU',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'}) : ''} · ${escapeHtml(n.author||'')}</div>
+          <h3>${escapeHtml(n.title||'')}</h3><p>${escapeHtml(n.text||'')}</p>`;
+        list.appendChild(el);
+      });
+    }, err=>console.error(err));
+}
+document.getElementById('newsSubmit').addEventListener('click', async ()=>{
+  const title = document.getElementById('newsTitle').value.trim();
+  const text = document.getElementById('newsText').value.trim();
+  if(!title || !text) return toast('Заполните заголовок и текст новости.');
+  await db.collection('news').add({title, text, author:currentAgent.fullName, createdAt:FieldValue.serverTimestamp()});
+  document.getElementById('newsTitle').value=''; document.getElementById('newsText').value='';
+  toast('Новость опубликована');
+});
 
-        // --- Support Logic ---
-        window.sendSupport = () => {
-            const text = document.getElementById('support-text').value.trim();
-            if(!text) return;
-            try {
-                push(ref(db, 'support'), {
-                    author: currentUser.name,
-                    text: text,
-                    date: new Date().toLocaleString()
-                });
-                alert("Сообщение отправлено руководителю!");
-                document.getElementById('support-text').value = '';
-            } catch(e) {
-                alert("Ошибка соединения. Попробуйте позже.");
-            }
-        };
+/* ============ КАТАЛОГ АГЕНТА ============ */
+function renderAgentTimeline(){
+  const wrap = document.getElementById('agentTimeline');
+  wrap.innerHTML = AGENT_STEPS.map((s,i)=>{
+    const mediaHtml = s.media==='16:9'
+      ? `<div class="media media-16x9"><div class="media-ph"><div class="mp-icon">🖼️</div><div>Фото 16:9</div></div></div>`
+      : `<div class="media media-9x16"><div class="media-ph"><div class="mp-icon">🎬</div><div>Видео 9:16</div></div></div>`;
+    return `<div class="step">
+      <div class="step-num">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        <h3>${escapeHtml(s.t)}</h3>
+        <p>${escapeHtml(s.d)}</p>
+        ${mediaHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
 
-        // --- Contests Logic ---
-        function listenToContests() {
-            try {
-                onValue(ref(db, 'contests'), (snapshot) => {
-                    const data = snapshot.val();
-                    if(data) {
-                        if(data.c1) {
-                            document.getElementById('c1-leader').innerText = data.c1.leader || "Нет данных";
-                            document.getElementById('c1-score').innerText = data.c1.score || "0";
-                            document.getElementById('c1-prize').innerText = data.c1.prize || "Ожидается...";
-                            if(isAdmin) {
-                                document.getElementById('edit-c1-leader').value = data.c1.leader || "";
-                                document.getElementById('edit-c1-score').value = data.c1.score || "";
-                                document.getElementById('edit-c1-prize').value = data.c1.prize || "";
-                            }
-                        }
-                        if(data.c2) {
-                            document.getElementById('c2-leader').innerText = data.c2.leader || "Нет данных";
-                            document.getElementById('c2-score').innerText = data.c2.score || "0";
-                            document.getElementById('c2-prize').innerText = data.c2.prize || "Ожидается...";
-                            if(isAdmin) {
-                                document.getElementById('edit-c2-leader').value = data.c2.leader || "";
-                                document.getElementById('edit-c2-score').value = data.c2.score || "";
-                                document.getElementById('edit-c2-prize').value = data.c2.prize || "";
-                            }
-                        }
-                        if(data.c3) {
-                            document.getElementById('c3-leader').innerText = data.c3.leader || "Нет данных";
-                            document.getElementById('c3-score').innerText = data.c3.score || "0";
-                            document.getElementById('c3-prize').innerText = data.c3.prize || "Ожидается...";
-                            if(isAdmin) {
-                                document.getElementById('edit-c3-leader').value = data.c3.leader || "";
-                                document.getElementById('edit-c3-score').value = data.c3.score || "";
-                                document.getElementById('edit-c3-prize').value = data.c3.prize || "";
-                            }
-                        }
-                    }
-                });
-            } catch(e){}
-        }
+/* ============ КОНКУРСЫ ============ */
+function fmtDeadline(d){
+  return d.toLocaleString('ru-RU',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
+}
+document.getElementById('contestCountdown').textContent = 'Конкурс идёт до '+fmtDeadline(CONTEST_DEADLINE);
 
-        window.saveContests = () => {
-            if(!isAdmin) return;
-            const payload = {
-                c1: {
-                    leader: document.getElementById('edit-c1-leader').value,
-                    score: document.getElementById('edit-c1-score').value,
-                    prize: document.getElementById('edit-c1-prize').value
-                },
-                c2: {
-                    leader: document.getElementById('edit-c2-leader').value,
-                    score: document.getElementById('edit-c2-score').value,
-                    prize: document.getElementById('edit-c2-prize').value
-                },
-                c3: {
-                    leader: document.getElementById('edit-c3-leader').value,
-                    score: document.getElementById('edit-c3-score').value,
-                    prize: document.getElementById('edit-c3-prize').value
-                }
-            };
-            try {
-                update(ref(db, 'contests'), payload);
-                alert("Результаты обновлены!");
-            } catch(e) {
-                alert("Ошибка сохранения");
-            }
-        };
+function attachContestListener(){
+  unsubContests = db.collection('contests').onSnapshot(snap=>{
+    snap.forEach(doc=>{ contestsCache[doc.id] = doc.data(); });
+    renderContests();
+  }, err=>console.error(err));
+  // на случай если документов ещё нет — отрисуем дефолт сразу
+  renderContests();
+}
 
-        // --- Admin Data (Users & Support) ---
-        function loadAdminData() {
-            try {
-                // Users
-                onValue(ref(db, 'users'), (snapshot) => {
-                    const tbody = document.getElementById('admin-users-table');
-                    tbody.innerHTML = '';
-                    snapshot.forEach(child => {
-                        const u = child.val();
-                        const dateStr = u.lastActive ? new Date(u.lastActive).toLocaleString() : 'Неизвестно';
-                        const dot = u.online ? '<span class="online-dot"></span>' : '<span class="offline-dot"></span>';
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>${u.name}</td>
-                                <td>${dot}</td>
-                                <td>${dateStr}</td>
-                            </tr>
-                        `;
-                    });
-                });
+function renderContests(){
+  const isAdmin = currentAgent && currentAgent.role==='admin';
+  const grid = document.getElementById('contestGrid');
+  grid.innerHTML = CONTEST_DEFS.map(def=>{
+    const data = contestsCache[def.id] || {results:[], prize:''};
+    const results = (data.results||[]).slice().sort((a,b)=>b.score-a.score);
+    const rows = results.length ? results.map((r,i)=>`
+      <div class="lb-row ${i===0?'top1':''}">
+        <div class="lb-name"><span class="lb-pos">${i+1}</span>${escapeHtml(r.name)}</div>
+        <div>${r.score} ${def.unit}</div>
+      </div>`).join('') : `<div style="font-size:13px;color:var(--text-dim);padding:8px 4px;">Результатов пока нет</div>`;
 
-                // Support
-                onValue(ref(db, 'support'), (snapshot) => {
-                    const list = document.getElementById('admin-support-list');
-                    list.innerHTML = '';
-                    snapshot.forEach(child => {
-                        const msg = child.val();
-                        list.innerHTML += `
-                            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
-                                <strong style="color:var(--accent-red)">${msg.author}</strong> <span style="font-size:11px; color:#888;">${msg.date}</span>
-                                <p style="margin-top:5px; font-size:14px;">${msg.text}</p>
-                            </div>
-                        `;
-                    });
-                });
-            } catch(e) {}
-        }
-    </script>
+    const adminTools = isAdmin ? `
+      <div class="admin-edit-row">
+        <input type="text" placeholder="Имя Фамилия" id="add-name-${def.id}">
+        <input type="number" placeholder="Счёт" style="max-width:80px;" id="add-score-${def.id}">
+        <button class="mini-btn primary" onclick="addContestResult('${def.id}')">+</button>
+      </div>
+      ${results.length ? `<div class="admin-edit-row" style="flex-wrap:wrap;">
+        ${results.map(r=>`<button class="mini-btn danger" onclick="removeContestResult('${def.id}','${encodeURIComponent(r.name)}')">✕ ${escapeHtml(r.name)}</button>`).join('')}
+      </div>` : ''}
+      <div class="admin-edit-row">
+        <input type="text" placeholder="Приз за конкурс" value="${escapeHtml(data.prize||'')}" id="prize-${def.id}">
+        <button class="mini-btn primary" onclick="savePrize('${def.id}')">Сохранить</button>
+      </div>
+    ` : '';
+
+    return `<div class="contest-card">
+      <div>
+        <div class="contest-title">${def.title}</div>
+        <div class="contest-sub">${def.subtitle}</div>
+      </div>
+      <div class="leaderboard">${rows}</div>
+      <div class="prize-box"><b>Приз</b>${data.prize ? escapeHtml(data.prize) : 'Скоро объявим 🎁'}</div>
+      ${adminTools}
+    </div>`;
+  }).join('');
+}
+
+window.addContestResult = async function(contestId){
+  const nameEl = document.getElementById('add-name-'+contestId);
+  const scoreEl = document.getElementById('add-score-'+contestId);
+  const name = nameEl.value.trim();
+  const score = parseInt(scoreEl.value,10);
+  if(!name || isNaN(score)) return toast('Укажите имя и число.');
+  const data = contestsCache[contestId] || {results:[], prize:''};
+  const results = (data.results||[]).filter(r=>normName(r.name)!==normName(name));
+  results.push({name, score});
+  await db.collection('contests').doc(contestId).set({results, prize:data.prize||''}, {merge:true});
+  nameEl.value=''; scoreEl.value='';
+};
+window.removeContestResult = async function(contestId, encName){
+  const name = decodeURIComponent(encName);
+  const data = contestsCache[contestId] || {results:[], prize:''};
+  const results = (data.results||[]).filter(r=>normName(r.name)!==normName(name));
+  await db.collection('contests').doc(contestId).set({results}, {merge:true});
+};
+window.savePrize = async function(contestId){
+  const prize = document.getElementById('prize-'+contestId).value.trim();
+  await db.collection('contests').doc(contestId).set({prize}, {merge:true});
+  toast('Приз сохранён');
+};
+
+/* ============ ЧАТ АГЕНТОВ ============ */
+function attachChatListener(){
+  unsubChat = db.collection('messages').orderBy('createdAt','asc').limitToLast(100)
+    .onSnapshot(snap=>{
+      const box = document.getElementById('chatMessages');
+      box.innerHTML = '';
+      snap.forEach(doc=>{
+        const m = doc.data();
+        const mine = m.authorId === currentAgent.id;
+        const el = document.createElement('div');
+        el.className = 'msg' + (mine ? ' me':'');
+        const roleTag = m.role==='admin' ? ' · Старший Агент' : '';
+        el.innerHTML = `<div class="m-meta">${escapeHtml(m.author||'')}${roleTag}</div>${escapeHtml(m.text||'')}`;
+        box.appendChild(el);
+      });
+      box.scrollTop = box.scrollHeight;
+    }, err=>console.error(err));
+}
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value='';
+  await db.collection('messages').add({
+    text, author: currentAgent.fullName, authorId: currentAgent.id, role: currentAgent.role,
+    createdAt: FieldValue.serverTimestamp()
+  });
+}
+document.getElementById('chatSend').addEventListener('click', sendChat);
+document.getElementById('chatInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendChat(); });
+
+/* ============ ПОДДЕРЖКА ============ */
+const supportModal = document.getElementById('supportModal');
+document.getElementById('supportFab').addEventListener('click', ()=> supportModal.classList.add('open'));
+document.getElementById('supportCancel').addEventListener('click', ()=> supportModal.classList.remove('open'));
+document.getElementById('supportSend').addEventListener('click', async ()=>{
+  const text = document.getElementById('supportText').value.trim();
+  if(!text) return toast('Напишите сообщение.');
+  await db.collection('support').add({
+    text, author: currentAgent.fullName, authorId: currentAgent.id,
+    read:false, createdAt: FieldValue.serverTimestamp()
+  });
+  document.getElementById('supportText').value='';
+  supportModal.classList.remove('open');
+  toast('Сообщение отправлено в поддержку');
+});
+
+/* ============ АДМИН: агенты ============ */
+function attachAgentsListener(){
+  unsubAgents = db.collection('agents').onSnapshot(snap=>{
+    const rows = [];
+    let onlineCount = 0;
+    snap.forEach(doc=>{
+      const a = doc.data();
+      const lastSeen = a.lastSeen?.toDate ? a.lastSeen.toDate() : null;
+      const online = lastSeen ? (Date.now()-lastSeen.getTime()) < ONLINE_WINDOW_MS : false;
+      if(online) onlineCount++;
+      rows.push({fullName:a.fullName, role:a.role, lastSeen, online});
+    });
+    rows.sort((a,b)=> (b.lastSeen?.getTime()||0) - (a.lastSeen?.getTime()||0));
+    document.getElementById('statTotal').textContent = rows.length;
+    document.getElementById('statOnline').textContent = onlineCount;
+    document.getElementById('agentTableBody').innerHTML = rows.map(r=>`
+      <tr>
+        <td>${escapeHtml(r.fullName)}${r.role==='admin' ? ' <span class="role-tag">Старший Агент</span>':''}</td>
+        <td><span class="status-pill"><span class="status-dot ${r.online?'':'off'}"></span>${r.online?'Онлайн':'Офлайн'}</span></td>
+        <td>${timeAgo(r.lastSeen)}</td>
+      </tr>`).join('');
+  }, err=>console.error(err));
+  // обновлять статус "онлайн" раз в 15 сек даже без новых данных
+  setInterval(()=>{ if(currentAgent && currentAgent.role==='admin') attachAgentsListener_refreshOnly(); }, 15000);
+}
+function attachAgentsListener_refreshOnly(){ /* снимок пересчитается сам через onSnapshot при следующем heartbeat других агентов; здесь просто триггерим перерисовку времени */ 
+  document.querySelectorAll('#agentTableBody tr td:nth-child(3)').forEach(()=>{});
+}
+
+/* ============ АДМИН: поддержка ============ */
+function attachSupportListener(){
+  unsubSupport = db.collection('support').orderBy('createdAt','desc').limit(50)
+    .onSnapshot(snap=>{
+      const list = document.getElementById('supportList');
+      document.getElementById('statMsgs').textContent = snap.size;
+      const unread = snap.docs.filter(d=>!d.data().read).length;
+      const notifCount = document.getElementById('notifCount');
+      if(unread>0){ notifCount.style.display='flex'; notifCount.textContent = unread>9?'9+':unread; }
+      else{ notifCount.style.display='none'; }
+
+      if(snap.empty){
+        list.innerHTML = `<div class="empty-state"><div class="em-icon">💬</div><h3>Обращений нет</h3></div>`;
+        return;
+      }
+      list.innerHTML = '';
+      snap.forEach(doc=>{
+        const s = doc.data();
+        const date = s.createdAt?.toDate ? s.createdAt.toDate() : null;
+        const el = document.createElement('div');
+        el.className='support-item';
+        el.innerHTML = `<div class="m-meta">${escapeHtml(s.author||'')} · ${date?date.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</div><div>${escapeHtml(s.text||'')}</div>`;
+        list.appendChild(el);
+      });
+    }, err=>console.error(err));
+}
+document.getElementById('notifBtn').addEventListener('click', ()=> showView('admin'));
+
+/* ============ ХЕЛПЕРЫ ============ */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
 </body>
 </html>
