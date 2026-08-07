@@ -645,3 +645,215 @@
                         Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением <strong>Inventory</strong>, а также освоим базовые принципы работы на территории.
                         <br><br>
                         Вы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нар
+                            <!-- === JAVASCRIPT === -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Элементы DOM ---
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app-screen');
+            const loginForm = document.getElementById('login-form');
+            const firstNameInput = document.getElementById('firstName');
+            const lastNameInput = document.getElementById('lastName');
+            const greetingText = document.getElementById('greeting-text');
+            const adminTabBtn = document.getElementById('admin-tab-btn');
+            const menuToggle = document.getElementById('menu-toggle');
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            const navItems = document.querySelectorAll('.dropdown-item[data-target]');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const themeToggle = document.getElementById('theme-toggle');
+            const logoutBtn = document.getElementById('logout-btn');
+            const adminTableBody = document.getElementById('admin-table-body');
+
+            // --- Система тем ---
+            let savedTheme = 'dark';
+            try {
+                savedTheme = localStorage.getItem('mts-theme') || 'dark';
+            } catch (e) {
+                console.warn('Локальное хранилище заблокировано, тема не сохранится после перезагрузки.');
+            }
+            
+            document.documentElement.setAttribute('data-theme', savedTheme);
+
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                try {
+                    localStorage.setItem('mts-theme', newTheme);
+                } catch (e) {}
+            });
+
+            // --- Управление пользователями (Безопасный режим) ---
+            let currentUser = null;
+
+            function getUsers() {
+                try {
+                    const users = localStorage.getItem('mts-users');
+                    return users ? JSON.parse(users) : {};
+                } catch (e) {
+                    return {}; // Если память заблокирована, возвращаем пустой объект, чтобы сайт не сломался
+                }
+            }
+
+            function saveUsers(users) {
+                try {
+                    localStorage.setItem('mts-users', JSON.stringify(users));
+                } catch (e) {
+                    // Игнорируем ошибку записи, чтобы пустить пользователя дальше
+                }
+            }
+
+            function formatDate(date) {
+                return date.toLocaleString('ru-RU', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+
+            // --- Логика Авторизации ---
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const fName = firstNameInput.value.trim();
+                const lName = lastNameInput.value.trim();
+                
+                if (!fName || !lName) return;
+
+                const fullName = `${lName} ${fName}`;
+                const isBoss = fullName.toLowerCase() === 'якушев виктор';
+
+                // Обновляем БД пользователей
+                const users = getUsers();
+                users[fullName] = {
+                    name: fullName,
+                    lastLogin: formatDate(new Date()),
+                    online: true
+                };
+                saveUsers(users);
+                currentUser = fullName;
+
+                // Настройка интерфейса
+                greetingText.textContent = `Привет, ${fName}`;
+                
+                if (isBoss) {
+                    adminTabBtn.style.display = 'block';
+                    renderAdminTable();
+                } else {
+                    adminTabBtn.style.display = 'none';
+                }
+
+                // Анимация перехода
+                loginScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    appScreen.style.display = 'block';
+                    setTimeout(() => {
+                        appScreen.style.opacity = '1';
+                    }, 50);
+                }, 500);
+            });
+
+            // --- Логика выхода и закрытия вкладки ---
+            function setOffline() {
+                if (currentUser) {
+                    const users = getUsers();
+                    if(users[currentUser]) {
+                        users[currentUser].online = false;
+                        saveUsers(users);
+                    }
+                }
+            }
+
+            logoutBtn.addEventListener('click', () => {
+                setOffline();
+                currentUser = null;
+                appScreen.style.opacity = '0';
+                setTimeout(() => {
+                    appScreen.style.display = 'none';
+                    loginScreen.style.display = 'flex';
+                    switchTab('tab-trainee');
+                    setTimeout(() => {
+                        loginScreen.style.opacity = '1';
+                    }, 50);
+                }, 500);
+                loginForm.reset();
+                dropdownMenu.classList.remove('active');
+            });
+
+            window.addEventListener('beforeunload', setOffline);
+            window.addEventListener('pagehide', setOffline);
+
+            // --- Логика Меню и Вкладок ---
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!dropdownMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+                    dropdownMenu.classList.remove('active');
+                }
+            });
+
+            function switchTab(targetId) {
+                navItems.forEach(item => {
+                    if(item.dataset.target === targetId) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+
+                tabContents.forEach(tab => {
+                    if(tab.id === targetId) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const target = item.dataset.target;
+                    switchTab(target);
+                    dropdownMenu.classList.remove('active');
+                    
+                    if(target === 'tab-admin') {
+                        renderAdminTable();
+                    }
+                });
+            });
+
+            // --- Рендер таблицы Админа ---
+            function renderAdminTable() {
+                const users = getUsers();
+                adminTableBody.innerHTML = '';
+                
+                const userArray = Object.values(users).sort((a, b) => {
+                    if (a.online === b.online) return 0;
+                    return a.online ? -1 : 1;
+                });
+
+                if (userArray.length === 0) {
+                    adminTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Нет данных (или память заблокирована)</td></tr>';
+                    return;
+                }
+
+                userArray.forEach(u => {
+                    const tr = document.createElement('tr');
+                    const statusClass = u.online ? 'status-online' : 'status-offline';
+                    const statusText = u.online ? 'Онлайн' : 'Оффлайн';
+                    
+                    tr.innerHTML = `
+                        <td style="font-weight:600;">${u.name}</td>
+                        <td style="color:var(--text-muted);">${u.lastLogin}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    `;
+                    adminTableBody.appendChild(tr);
+                });
+            }
+        });
+    </script>
+                        
