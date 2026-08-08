@@ -436,27 +436,6 @@ main{ max-width:1180px; margin:0 auto; padding:28px 20px 100px; }
 .media-box img, .media-box video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:12px; }
 .media-edit-btn{ position:absolute; bottom:8px; right:8px; z-index:2; }
 
-/* CHAT */
-.chat-wrap{ display:flex; flex-direction:column; height:calc(100vh - 210px); min-height:420px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--surface); overflow:hidden; }
-.chat-msgs{ flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; }
-.msg{ max-width:78%; padding:11px 14px; border-radius:14px; background:var(--surface-2); align-self:flex-start; }
-.msg.me{ align-self:flex-end; background:linear-gradient(135deg,var(--accent),var(--accent-deep)); color:#fff; }
-.msg .msg-top{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:800; margin-bottom:3px; opacity:.85; }
-.msg .msg-top .tag{ background:var(--accent); color:#fff; font-size:9.5px; padding:1px 6px; border-radius:6px; letter-spacing:.03em; }
-.msg.me .msg-top .tag{ background:rgba(255,255,255,.25); }
-.msg-del{ margin-left:auto; background:none; border:none; opacity:.6; font-size:12px; font-weight:800; padding:0 2px; color:inherit; }
-.msg-del:hover{ opacity:1; }
-.msg p{ font-size:14px; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
-.msg time{ display:block; font-size:10px; opacity:.6; margin-top:4px; }
-.chat-input-row{ display:flex; gap:10px; padding:14px; border-top:1px solid var(--border-soft); }
-.chat-input-row textarea{
-  flex:1; resize:none; border:1.5px solid var(--border); background:var(--surface-2); color:var(--text);
-  border-radius:14px; padding:12px 14px; font-size:14px; outline:none; max-height:120px;
-}
-.chat-input-row textarea:focus{ border-color:var(--accent); }
-.send-btn{ width:48px; height:48px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--accent),var(--accent-deep)); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 8px 20px var(--accent-glow); }
-.send-btn svg{ width:19px; height:19px; }
-
 /* CONTEST */
 .contest-card{ position:relative; overflow:hidden; }
 .contest-tag{
@@ -515,7 +494,6 @@ table.roster input[type="checkbox"]{ width:18px; height:18px; accent-color:var(-
 @media (max-width:720px){
   .user-chip .uname, .user-chip .urole{ display:none; }
   .hero-stats{ gap:18px; }
-  .chat-wrap{ height:calc(100vh - 190px); border-radius:16px; }
   main{ padding:20px 14px 90px; }
 }
 .toast-wrap{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:1200; display:flex; flex-direction:column; gap:8px; align-items:center; }
