@@ -2175,518 +2175,525 @@
   
   <div class="toast-wrap" id="toastWrap"></div>
 
-  <script>
-    /* ============================================================ FIREBASE INIT ============================================================ */
-    const firebaseConfig = {
-      apiKey: "AIzaSyCvMVLbo6AOTG4EUyoth6XRjxYvlHbjZsA",
-      authDomain: "portall-pp-e2101.firebaseapp.com",
-      projectId: "portall-pp-e2101",
-      storageBucket: "portall-pp-e2101.firebasestorage.app",
-      messagingSenderId: "378340444786",
-      appId: "1:378340444786:web:b3832b6b3ded6102cfd0eb"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-    
-    /* ============================================================ CONSTANTS ============================================================ */
-    const ADMIN_NAME_NORM = "якушев виктор";
-    const ADMIN_EMAIL = "admin@portal-pp.ru"; // создайте этот аккаунт в Firebase Authentication (Email/Password)
-    const CONTEST_DEADLINE = new Date("2026-08-28T14:00:00");
-    const HEARTBEAT_MS = 25000;
-    const ONLINE_WINDOW_MS = 70000;
-    const CATALOG_LABELS = { catalogAgent: "Агент-стажёр", catalogCall: "Входящий вызов", catalogPko: "Поквартирный обход" };
-    const DEFAULT_AGENT_STEPS = [
-      {title:"Стажировочный день: Программа Inventory и расклейка рекламных материалов", text:"Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением Inventory, а также освоим базовые принципы работы на территории.\n\nВы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании."},
-      {title:"Программа Inventory: статистика за месяц", text:"Приложение Inventory — это ваш личный кабинет и главный помощник. В этом разделе вы научитесь отслеживать свои результаты.\n\nАналитика: следите за количеством пройденных домов и выполненных задач в режиме реального времени.\nПрогресс: изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии. Контроль цифр — залог высокого дохода."},
-      {title:"Адреса твоей территории", text:"В этом блоке мы разбираем, как работать с адресной базой.\n\nВы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Чёткое следование маршруту экономит ваши силы и увеличивает охват."},
-      {title:"Чек-лист рабочего дня", text:"Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист рабочего дня включает в себя все этапы: от планирования рабочего дня до отправки вечернего отчёта после его завершения.\n\nПривычка сверяться с чек-листами поможет вам автоматизировать рутину, избежать ошибок и всегда выполнять работу без замечаний от руководителя."},
-      {title:"Работа в полях: открытие чек-листа для визуализации", text:"Вы прибыли на адрес — время начинать работу.\n\nПодойдя к нужному дому, первым делом откройте чек-лист в приложении. Это действие фиксирует начало вашей работы на конкретном адресе. Без открытого чек-листа проделанная работа не будет учтена!"},
-      {title:"Визуализация предподъездной доски объявлений", text:"Обратите внимание на доску объявлений перед подъездом.\n\nРазместите рекламу ровно, аккуратно и на самом видном месте. Убедитесь, что листовка надёжно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании."},
-      {title:"Визуализация в подъезде — щитки, коробки, трубостойки", text:"Работа внутри подъезда требует особого внимания. Пройдите по этажам и обратите внимание на места прокладки коммуникаций.\n\nСлаботочные щитки и распределительные коробки: размещайте листовки строго в отведённых для этого местах.\nТрубостойки: убедитесь, что визуализация размещена аккуратно и не перекрывает доступ к оборудованию."},
-      {title:"Фотоотчёт", text:"Каждое ваше действие должно быть зафиксировано. Фотография — это подтверждение качества вашей работы. Сфотографируйте каждую листовку.\n\nДелайте светлые и чёткие снимки. В кадр должен полностью попадать размещённый материал и часть окружающего пространства (номер квартиры, этаж или контуры щитка), чтобы можно было легко определить место."},
-      {title:"Почтовые ящики", text:"Раскидка листовок по почтовым ящикам — классический и эффективный инструмент.\n\nВкладывайте листовки так, чтобы они не торчали наполовину и не падали на пол. Действуйте системно: ни один ящик не должен быть пропущен, если иное не указано в вашем маршрутном листе."},
-      {title:"Закрытие чек-листа после пройденного дома", text:"Работа в доме завершена только тогда, когда вы закрыли чек-лист в системе.\n\nПроверьте, все ли пункты выполнены (предподъездная доска, этажи, ящики, фото). Отметьте, в каких подъездах вы разместили рекламу, были ли там листовки конкурентов, и подошёл ли ключ-вездеход к домофону. Сохраните результат и завершите чек-лист — это переведёт дом в статус «Завершён»."},
-      {title:"Вечерний отчёт за пройденный рабочий день", text:"Рабочий день агента заканчивается подведением итогов. Вечерний отчёт — это сводка вашей активности.\n\nВ — визуализация · Дмх — домовой обход · Од — открытые двери · Вхз — входящие звонки · Птнц — потенциальный абонент · П — продажи · Пр — продажа роутера · Пс — продажа приставки. Также укажите список домов, пройденных за день."},
-      {title:"Вечерний фотоотчёт по сделанной визуализации", text:"Финальный этап смены — фотоотчёт. Загрузите все фотографии визуализации (доски, щитки, распределительные коробки) в специальный чат.\n\nУбедитесь, что фотографии подписаны по нужным адресам, загрузились без ошибок и соответствуют регламенту из закреплённого сообщения."}
-    ];
-    const DEFAULT_CONTESTS = [
-      {id:"born-poster", title:"Рождённый расклейщик", subtitle:"Больше всего рекламных материалов за месяц", prize:"", winner:"", leaderboard:[], order:0},
-      {id:"pko-wolf", title:"Волк ПКО", subtitle:"Больше всего продаж на поквартирном обходе", prize:"", winner:"", leaderboard:[], order:1},
-      {id:"jordan-belfort", title:"Джордан Белфорт", subtitle:"Больше всего продаж на входящем звонке", prize:"", winner:"", leaderboard:[], order:2}
-    ];
-    
-    /* ============================================================ STATE ============================================================ */
-    let state = {
-      name: null, slug: null, isAdmin: false, label: "", avatarUrl: "", catalogs: {incomingCall:false, doorToDoor:false, contest:false}, unsubs: [], viewingAgentSlug: null, agentsCache: [], likesCache: [], commentsCache: [], stepsCache: {catalogAgent:[], catalogCall:[], catalogPko:[]}
-    };
-    function slugify(name){ return name.trim().toLowerCase().replace(/ё/g,"е").replace(/\s+/g," "); }
-    function docIdFor(name){ return slugify(name).replace(/[^a-zа-я0-9\- ]/gi,"").replace(/\s+/g,"_"); }
-    function initials(name){ return name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase(); }
-    function avatarMini(a){ if(a && a.avatarUrl){ return `<div class="avatar"><img src="${a.avatarUrl}" alt=""></div>`; } return `<div class="avatar">${initials((a && a.name) || "?")}</div>`; }
-    
-    /* ============================================================ THEME ============================================================ */
-    const THEME_LIST = ["dark","light","black","purple","tiffany","emerald","sapphire","bronze","champagne","blossom","arctic"];
-    function applyTheme(t){
-      if(!THEME_LIST.includes(t)) t = "dark";
-      document.documentElement.setAttribute("data-theme", t);
-      localStorage.setItem("pp_theme", t);
-      document.querySelectorAll(".theme-option").forEach(el=>{
-        el.classList.toggle("active", el.getAttribute("data-theme")===t);
-      });
+  <script>    
+// ============================================================ FIREBASE INIT ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCvMVLbo6AOTG4EUyoth6XRjxYvlHbjZsA",
+  authDomain: "portall-pp-e2101.firebaseapp.com",
+  projectId: "portall-pp-e2101",
+  storageBucket: "portall-pp-e2101.firebasestorage.app",
+  messagingSenderId: "378340444786",
+  appId: "1:378340444786:web:b3832b6b3ded6102cfd0eb"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const storage = firebase.storage();
+
+// ============================================================ CONSTANTS ============================================================
+const ADMIN_NAME_NORM = "якушев виктор";
+const ADMIN_EMAIL = "admin@portal-pp.ru"; // создайте этот аккаунт в Firebase Authentication (Email/Password)
+const CONTEST_DEADLINE = new Date("2026-08-28T14:00:00");
+const HEARTBEAT_MS = 25000;
+const ONLINE_WINDOW_MS = 70000;
+const CATALOG_LABELS = { catalogAgent: "Агент-стажёр", catalogCall: "Входящий вызов", catalogPko: "Поквартирный обход" };
+const DEFAULT_AGENT_STEPS = [
+  {title:"Стажировочный день: Программа Inventory и расклейка рекламных материалов", text:"Добро пожаловать в команду! Ваш первый стажировочный день — это фундамент успешной работы. Сегодня мы познакомим вас с главным рабочим инструментом — приложением Inventory, а также освоим базовые принципы работы на территории.\n\nВы узнаете, как грамотно и аккуратно размещать рекламные листовки, чтобы они привлекали внимание жильцов и не нарушали правила благоустройства. Главная цель этого дня — понять механику работы и научиться действовать по стандартам компании."},
+  {title:"Программа Inventory: статистика за месяц", text:"Приложение Inventory — это ваш личный кабинет и главный помощник. В этом разделе вы научитесь отслеживать свои результаты.\n\nАналитика: следите за количеством пройденных домов и выполненных задач в режиме реального времени.\nПрогресс: изучайте свою статистику за месяц, чтобы понимать, насколько вы близки к выполнению плана и получению премии. Контроль цифр — залог высокого дохода."},
+  {title:"Адреса твоей территории", text:"В этом блоке мы разбираем, как работать с адресной базой.\n\nВы научитесь находить выделенную вам территорию в системе, правильно выстраивать маршрут и планировать время на обход каждого дома. Чёткое следование маршруту экономит ваши силы и увеличивает охват."},
+  {title:"Чек-лист рабочего дня", text:"Чтобы ничего не упустить, у каждого агента есть строгий порядок действий. Чек-лист рабочего дня включает в себя все этапы: от планирования рабочего дня до отправки вечернего отчёта после его завершения.\n\nПривычка сверяться с чек-листами поможет вам автоматизировать рутину, избежать ошибок и всегда выполнять работу без замечаний от руководителя."},
+  {title:"Работа в полях: открытие чек-листа для визуализации", text:"Вы прибыли на адрес — время начинать работу.\n\nПодойдя к нужному дому, первым делом откройте чек-лист в приложении. Это действие фиксирует начало вашей работы на конкретном адресе. Без открытого чек-листа проделанная работа не будет учтена!"},
+  {title:"Визуализация предподъездной доски объявлений", text:"Обратите внимание на доску объявлений перед подъездом.\n\nРазместите рекламу ровно, аккуратно и на самом видном месте. Убедитесь, что листовка надёжно закреплена и текст хорошо читается. Чистота и эстетика — лицо нашей компании."},
+  {title:"Визуализация в подъезде — щитки, коробки, трубостойки", text:"Работа внутри подъезда требует особого внимания. Пройдите по этажам и обратите внимание на места прокладки коммуникаций.\n\nСлаботочные щитки и распределительные коробки: размещайте листовки строго в отведённых для этого местах.\nТрубостойки: убедитесь, что визуализация размещена аккуратно и не перекрывает доступ к оборудованию."},
+  {title:"Фотоотчёт", text:"Каждое ваше действие должно быть зафиксировано. Фотография — это подтверждение качества вашей работы. Сфотографируйте каждую листовку.\n\nДелайте светлые и чёткие снимки. В кадр должен полностью попадать размещённый материал и часть окружающего пространства (номер квартиры, этаж или контуры щитка), чтобы можно было легко определить место."},
+  {title:"Почтовые ящики", text:"Раскидка листовок по почтовым ящикам — классический и эффективный инструмент.\n\nВкладывайте листовки так, чтобы они не торчали наполовину и не падали на пол. Действуйте системно: ни один ящик не должен быть пропущен, если иное не указано в вашем маршрутном листе."},
+  {title:"Закрытие чек-листа после пройденного дома", text:"Работа в доме завершена только тогда, когда вы закрыли чек-лист в системе.\n\nПроверьте, все ли пункты выполнены (предподъездная доска, этажи, ящики, фото). Отметьте, в каких подъездах вы разместили рекламу, были ли там листовки конкурентов, и подошёл ли ключ-вездеход к домофону. Сохраните результат и завершите чек-лист — это переведёт дом в статус «Завершён»."},
+  {title:"Вечерний отчёт за пройденный рабочий день", text:"Рабочий день агента заканчивается подведением итогов. Вечерний отчёт — это сводка вашей активности.\n\nВ — визуализация · Дмх — домовой обход · Од — открытые двери · Вхз — входящие звонки · Птнц — потенциальный абонент · П — продажи · Пр — продажа роутера · Пс — продажа приставки. Также укажите список домов, пройденных за день."},
+  {title:"Вечерний фотоотчёт по сделанной визуализации", text:"Финальный этап смены — фотоотчёт. Загрузите все фотографии визуализации (доски, щитки, распределительные коробки) в специальный чат.\n\nУбедитесь, что фотографии подписаны по нужным адресам, загрузились без ошибок и соответствуют регламенту из закреплённого сообщения."}
+];
+const DEFAULT_CONTESTS = [
+  {id:"born-poster", title:"Рождённый расклейщик", subtitle:"Больше всего рекламных материалов за месяц", prize:"", winner:"", leaderboard:[], order:0},
+  {id:"pko-wolf", title:"Волк ПКО", subtitle:"Больше всего продаж на поквартирном обходе", prize:"", winner:"", leaderboard:[], order:1},
+  {id:"jordan-belfort", title:"Джордан Белфорт", subtitle:"Больше всего продаж на входящем звонке", prize:"", winner:"", leaderboard:[], order:2}
+];
+
+// ============================================================ STATE ============================================================
+let state = {
+  name: null, slug: null, isAdmin: false, label: "", avatarUrl: "", catalogs: {incomingCall:false, doorToDoor:false, contest:false}, unsubs: [], viewingAgentSlug: null, agentsCache: [], likesCache: [], commentsCache: [], stepsCache: {catalogAgent:[], catalogCall:[], catalogPko:[]}
+};
+function slugify(name){ return name.trim().toLowerCase().replace(/ё/g,"е").replace(/\s+/g," "); }
+function docIdFor(name){ return slugify(name).replace(/[^a-zа-я0-9\- ]/gi,"").replace(/\s+/g,"_"); }
+function initials(name){ return name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase(); }
+function avatarMini(a){ if(a && a.avatarUrl){ return `<div class="avatar"><img src="${a.avatarUrl}" alt=""></div>`; } return `<div class="avatar">${initials((a && a.name) || "?")}</div>`; }
+
+// ============================================================ THEME ============================================================
+const THEME_LIST = ["dark","light","black","purple","tiffany","emerald","sapphire","bronze","champagne","blossom","arctic"];
+function applyTheme(t){
+  if(!THEME_LIST.includes(t)) t = "dark";
+  document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem("pp_theme", t);
+  document.querySelectorAll(".theme-option").forEach(el=>{
+    el.classList.toggle("active", el.getAttribute("data-theme")===t);
+  });
+}
+(function initTheme(){ applyTheme(localStorage.getItem("pp_theme") || "dark"); })();
+document.querySelectorAll(".theme-option").forEach(el=>{
+  el.addEventListener("click", (e)=>{
+    e.stopPropagation(); applyTheme(el.getAttribute("data-theme"));
+    const dd = el.closest(".dropdown"); if(dd) dd.classList.remove("open");
+  });
+});
+
+// ============================================================ TOASTS ============================================================
+function toast(msg){
+  const wrap = document.getElementById("toastWrap");
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 3400);
+}
+
+// ============================================================ GATE / LOGIN ============================================================
+const gateForm = document.getElementById("gateForm");
+const gateName = document.getElementById("gateName");
+const gatePass = document.getElementById("gatePass");
+const adminBox = document.getElementById("adminBox");
+const gateError = document.getElementById("gateError");
+const gateSubmitBtn = document.getElementById("gateSubmitBtn");
+
+gateName.addEventListener("input", ()=>{
+  const norm = slugify(gateName.value).trim();
+  adminBox.classList.toggle("hidden", norm !== ADMIN_NAME_NORM);
+});
+
+gateForm.addEventListener("submit", async (e)=>{
+  e.preventDefault(); gateError.textContent = "";
+  const rawName = gateName.value.trim().replace(/\s+/g," ");
+  if(rawName.split(" ").length < 2){ gateError.textContent = "Введите Фамилию и Имя полностью"; return; }
+  const norm = slugify(rawName);
+  const wantsAdmin = norm === ADMIN_NAME_NORM;
+  gateSubmitBtn.disabled = true;
+  gateSubmitBtn.innerHTML = '<span class="spin"></span>';
+  try {
+    if(wantsAdmin){
+      const pass = gatePass.value.trim();
+      if(!pass){ gateError.textContent = "Введите пароль администратора"; gateSubmitBtn.disabled = false; gateSubmitBtn.textContent = "Войти на портал"; return; }
+      await auth.signInWithEmailAndPassword(ADMIN_EMAIL, pass);
+      await completeLogin(rawName, true);
+    } else {
+      if(!auth.currentUser){ await auth.signInAnonymously(); }
+      await completeLogin(rawName, false);
     }
-    (function initTheme(){ applyTheme(localStorage.getItem("pp_theme") || "dark"); })();
-    document.querySelectorAll(".theme-option").forEach(el=>{
-      el.addEventListener("click", (e)=>{
-        e.stopPropagation(); applyTheme(el.getAttribute("data-theme"));
-        const dd = el.closest(".dropdown"); if(dd) dd.classList.remove("open");
-      });
-    });
-    
-    /* ============================================================ TOASTS ============================================================ */
-    function toast(msg){
-      const wrap = document.getElementById("toastWrap");
-      const el = document.createElement("div");
-      el.className = "toast"; el.textContent = msg;
-      wrap.appendChild(el);
-      setTimeout(()=>{ el.remove(); }, 3400);
+  } catch(err) {
+    console.error(err);
+    if(err && err.message === "BLOCKED"){
+      gateError.textContent = "Ваш доступ к порталу заблокирован. Обратитесь к руководителю.";
+      try{ await auth.signOut(); }catch(e){}
+    } else if(err && err.message === "DELETED"){
+      gateError.textContent = "Ваш аккаунт удалён с портала. Обратитесь к руководителю.";
+      try{ await auth.signOut(); }catch(e){}
+    } else {
+      gateError.textContent = wantsAdmin ? "Неверный пароль администратора" : "Не удалось войти. Проверьте соединение и попробуйте снова.";
     }
-    
-    /* ============================================================ GATE / LOGIN ============================================================ */
-    const gateForm = document.getElementById("gateForm");
-    const gateName = document.getElementById("gateName");
-    const gatePass = document.getElementById("gatePass");
-    const adminBox = document.getElementById("adminBox");
-    const gateError = document.getElementById("gateError");
-    const gateSubmitBtn = document.getElementById("gateSubmitBtn");
-    
-    gateName.addEventListener("input", ()=>{
-      const norm = slugify(gateName.value).trim();
-      adminBox.classList.toggle("hidden", norm !== ADMIN_NAME_NORM);
+  } finally {
+    gateSubmitBtn.disabled = false; gateSubmitBtn.textContent = "Войти на портал";
+  }
+});
+
+async function completeLogin(name, isAdmin){
+  const slug = docIdFor(name);
+  const ref = db.collection("agents").doc(slug);
+  const doc = await ref.get();
+  if(doc.exists && doc.data().deleted && !isAdmin){ throw new Error("DELETED"); }
+  if(doc.exists && doc.data().blocked && !isAdmin){ throw new Error("BLOCKED"); }
+  if(doc.exists){
+    await ref.update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+    const data = doc.data();
+    state.name = data.name || name;
+    state.label = data.label || "";
+    state.avatarUrl = data.avatarUrl || "";
+    state.catalogs = data.catalogs || {incomingCall:false, doorToDoor:false, contest:false};
+  } else {
+    await ref.set({
+      name: name, normalized: slugify(name), label: "", blocked: false, deleted: false, avatarUrl: "",
+      catalogs: {incomingCall:false, doorToDoor:false, contest:false},
+      lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    
-    gateForm.addEventListener("submit", async (e)=>{
-      e.preventDefault(); gateError.textContent = "";
-      const rawName = gateName.value.trim().replace(/\s+/g," ");
-      if(rawName.split(" ").length < 2){ gateError.textContent = "Введите Фамилию и Имя полностью"; return; }
-      const norm = slugify(rawName);
-      const wantsAdmin = norm === ADMIN_NAME_NORM;
-      gateSubmitBtn.disabled = true;
-      gateSubmitBtn.innerHTML = '<span class="spin"></span>';
-      try {
-        if(wantsAdmin){
-          const pass = gatePass.value.trim();
-          if(!pass){ gateError.textContent = "Введите пароль администратора"; gateSubmitBtn.disabled = false; gateSubmitBtn.textContent = "Войти на портал"; return; }
-          await auth.signInWithEmailAndPassword(ADMIN_EMAIL, pass);
-          await completeLogin(rawName, true);
-        } else {
-          if(!auth.currentUser){ await auth.signInAnonymously(); }
-          await completeLogin(rawName, false);
-        }
-      } catch(err) {
+    state.name = name; state.label = ""; state.avatarUrl = "";
+    state.catalogs = {incomingCall:false, doorToDoor:false, contest:false};
+  }
+  state.slug = slug; state.isAdmin = isAdmin;
+  localStorage.setItem("pp_name", name); localStorage.setItem("pp_admin", isAdmin ? "1":"0");
+  enterApp();
+}
+
+function refreshUserUI(){
+  document.getElementById("userNameLbl").textContent = state.name || "—";
+  const av = document.getElementById("userAvatar");
+  av.innerHTML = state.avatarUrl ? `<img src="${state.avatarUrl}" alt="">` : initials(state.name||"?");
+  const roleLbl = document.getElementById("userRoleLbl");
+  if(state.isAdmin){ roleLbl.textContent = "Старший агент"; roleLbl.classList.remove("hidden"); }
+  else if(state.label){ roleLbl.textContent = state.label; roleLbl.classList.remove("hidden"); }
+  else { roleLbl.classList.add("hidden"); }
+}
+
+function applyCatalogVisibility(){
+  const callItem = document.querySelector('[data-nav="catalog-call"]');
+  const pkoItem = document.querySelector('[data-nav="catalog-pko"]');
+  const contestItem = document.querySelector('[data-nav="contest"]');
+  const canCall = state.isAdmin || (state.catalogs && state.catalogs.incomingCall);
+  const canPko = state.isAdmin || (state.catalogs && state.catalogs.doorToDoor);
+  const canContest = state.isAdmin || (state.catalogs && state.catalogs.contest);
+  if(callItem) callItem.classList.toggle("hidden", !canCall);
+  if(pkoItem) pkoItem.classList.toggle("hidden", !canPko);
+  if(contestItem) contestItem.classList.toggle("hidden", !canContest);
+}
+
+function enterApp(){
+  document.getElementById("gate").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  refreshUserUI();
+  document.getElementById("adminNavItem").classList.toggle("hidden", !state.isAdmin);
+  document.getElementById("adminSep").classList.toggle("hidden", !state.isAdmin);
+  document.getElementById("addNewsBtn").classList.toggle("hidden", !state.isAdmin);
+  applyCatalogVisibility();
+  startHeartbeat();
+  attachListeners();
+  navigate("home");
+}
+
+function startHeartbeat(){
+  const beat = ()=>{ db.collection("agents").doc(state.slug).update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{}); };
+  beat(); setInterval(beat, HEARTBEAT_MS);
+}
+
+// auto-login on refresh
+window.addEventListener("DOMContentLoaded", ()=>{
+  const savedName = localStorage.getItem("pp_name");
+  const savedAdmin = localStorage.getItem("pp_admin") === "1";
+  if(savedName){
+    if(savedAdmin){
+      auth.onAuthStateChanged(user=>{
+        if(user && user.email === ADMIN_EMAIL){ completeLogin(savedName, true).catch(err=> console.error(err)); }
+        else if(!user){ gateName.value = savedName; gateName.dispatchEvent(new Event("input")); }
+      });
+    } else {
+      auth.signInAnonymously().then(()=> completeLogin(savedName, false)).catch(err=>{
         console.error(err);
-        if(err && err.message === "BLOCKED"){
-          gateError.textContent = "Ваш доступ к порталу заблокирован. Обратитесь к руководителю.";
-          try{ await auth.signOut(); }catch(e){}
-        } else if(err && err.message === "DELETED"){
-          gateError.textContent = "Ваш аккаунт удалён с портала. Обратитесь к руководителю.";
-          try{ await auth.signOut(); }catch(e){}
-        } else {
-          gateError.textContent = wantsAdmin ? "Неверный пароль администратора" : "Не удалось войти. Проверьте соединение и попробуйте снова.";
-        }
-      } finally {
-        gateSubmitBtn.disabled = false; gateSubmitBtn.textContent = "Войти на портал";
-      }
-    });
-    
-    async function completeLogin(name, isAdmin){
-      const slug = docIdFor(name);
-      const ref = db.collection("agents").doc(slug);
-      const doc = await ref.get();
-      if(doc.exists && doc.data().deleted && !isAdmin){ throw new Error("DELETED"); }
-      if(doc.exists && doc.data().blocked && !isAdmin){ throw new Error("BLOCKED"); }
-      if(doc.exists){
-        await ref.update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
-        const data = doc.data();
-        state.name = data.name || name;
-        state.label = data.label || "";
-        state.avatarUrl = data.avatarUrl || "";
-        state.catalogs = data.catalogs || {incomingCall:false, doorToDoor:false, contest:false};
-      } else {
-        await ref.set({
-          name: name, normalized: slugify(name), label: "", blocked: false, deleted: false, avatarUrl: "",
-          catalogs: {incomingCall:false, doorToDoor:false, contest:false},
-          lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        state.name = name; state.label = ""; state.avatarUrl = "";
-        state.catalogs = {incomingCall:false, doorToDoor:false, contest:false};
-      }
-      state.slug = slug; state.isAdmin = isAdmin;
-      localStorage.setItem("pp_name", name); localStorage.setItem("pp_admin", isAdmin ? "1":"0");
-      enterApp();
-    }
-    
-    function refreshUserUI(){
-      document.getElementById("userNameLbl").textContent = state.name || "—";
-      const av = document.getElementById("userAvatar");
-      av.innerHTML = state.avatarUrl ? `<img src="${state.avatarUrl}" alt="">` : initials(state.name||"?");
-      const roleLbl = document.getElementById("userRoleLbl");
-      if(state.isAdmin){ roleLbl.textContent = "Старший агент"; roleLbl.classList.remove("hidden"); }
-      else if(state.label){ roleLbl.textContent = state.label; roleLbl.classList.remove("hidden"); }
-      else { roleLbl.classList.add("hidden"); }
-    }
-    
-    function applyCatalogVisibility(){
-      const callItem = document.querySelector('[data-nav="catalog-call"]');
-      const pkoItem = document.querySelector('[data-nav="catalog-pko"]');
-      const contestItem = document.querySelector('[data-nav="contest"]');
-      const canCall = state.isAdmin || (state.catalogs && state.catalogs.incomingCall);
-      const canPko = state.isAdmin || (state.catalogs && state.catalogs.doorToDoor);
-      const canContest = state.isAdmin || (state.catalogs && state.catalogs.contest);
-      if(callItem) callItem.classList.toggle("hidden", !canCall);
-      if(pkoItem) pkoItem.classList.toggle("hidden", !canPko);
-      if(contestItem) contestItem.classList.toggle("hidden", !canContest);
-    }
-    
-    function enterApp(){
-      document.getElementById("gate").classList.add("hidden");
-      document.getElementById("app").classList.remove("hidden");
-      refreshUserUI();
-      document.getElementById("adminNavItem").classList.toggle("hidden", !state.isAdmin);
-      document.getElementById("adminSep").classList.toggle("hidden", !state.isAdmin);
-      document.getElementById("addNewsBtn").classList.toggle("hidden", !state.isAdmin);
-      applyCatalogVisibility();
-      startHeartbeat();
-      attachListeners();
-      navigate("home");
-    }
-    
-    function startHeartbeat(){
-      const beat = ()=>{ db.collection("agents").doc(state.slug).update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{}); };
-      beat(); setInterval(beat, HEARTBEAT_MS);
-    }
-    
-    // auto-login on refresh
-    window.addEventListener("DOMContentLoaded", ()=>{
-      const savedName = localStorage.getItem("pp_name");
-      const savedAdmin = localStorage.getItem("pp_admin") === "1";
-      if(savedName){
-        if(savedAdmin){
-          auth.onAuthStateChanged(user=>{
-            if(user && user.email === ADMIN_EMAIL){ completeLogin(savedName, true).catch(err=> console.error(err)); }
-            else if(!user){ gateName.value = savedName; gateName.dispatchEvent(new Event("input")); }
-          });
-        } else {
-          auth.signInAnonymously().then(()=> completeLogin(savedName, false)).catch(err=>{
-            console.error(err);
-            if(err && err.message === "BLOCKED"){ localStorage.removeItem("pp_name"); localStorage.removeItem("pp_admin"); gateError.textContent = "Ваш доступ к порталу заблокирован. Обратитесь к руководителю."; }
-            else if(err && err.message === "DELETED"){ localStorage.removeItem("pp_name"); localStorage.removeItem("pp_admin"); gateError.textContent = "Ваш аккаунт удалён с портала. Обратитесь к руководителю."; }
-            document.getElementById("gate").classList.remove("hidden");
-          });
-        }
-      }
-    });
-    
-    document.getElementById("logoutBtn").addEventListener("click", ()=>{
-      localStorage.removeItem("pp_name"); localStorage.removeItem("pp_admin");
-      state.unsubs.forEach(u=>u()); state.unsubs = [];
-      auth.signOut().finally(()=> location.reload());
-    });
-    
-    /* ============================================================ SETTINGS (self-service, all users) ============================================================ */
-    function openSettingsModal(){
-      document.getElementById("settingsNameInput").value = state.name || "";
-      const prev = document.getElementById("settingsAvatarPreview");
-      prev.innerHTML = state.avatarUrl ? `<img src="${state.avatarUrl}" alt="">` : initials(state.name||"?");
-      document.getElementById("settingsAvatarInput").value = ""; document.getElementById("settingsStatus").textContent = "";
-      openModal("settingsModalScrim");
-    }
-    document.getElementById("settingsNavItem").addEventListener("click", openSettingsModal);
-    
-    document.getElementById("saveSettingsBtn").addEventListener("click", async ()=>{
-      const statusEl = document.getElementById("settingsStatus");
-      const newName = document.getElementById("settingsNameInput").value.trim();
-      if(!newName || newName.split(" ").length<2){ statusEl.textContent = "Введите Фамилию и Имя полностью"; return; }
-      const file = document.getElementById("settingsAvatarInput").files[0];
-      statusEl.textContent = "Сохранение…";
-      try {
-        const updates = { name:newName, normalized:slugify(newName) };
-        if(file){
-          const ref = storage.ref().child(`avatars/${state.slug}_${Date.now()}_${file.name}`);
-          await ref.put(file); updates.avatarUrl = await ref.getDownloadURL();
-        }
-        await db.collection("agents").doc(state.slug).update(updates);
-        state.name = newName; if(updates.avatarUrl) state.avatarUrl = updates.avatarUrl;
-        refreshUserUI(); statusEl.textContent = ""; toast("Настройки сохранены"); closeModal("settingsModalScrim");
-      } catch(err) {
-        console.error(err); statusEl.textContent = "Ошибка сохранения";
-      }
-    });
-    
-    /* ============================================================ NAVIGATION ============================================================ */
-    function navigate(page){
-      if(page === "catalog-call" && !(state.isAdmin || (state.catalogs && state.catalogs.incomingCall))){ toast("Доступ к этому разделу пока закрыт"); return; }
-      if(page === "catalog-pko" && !(state.isAdmin || (state.catalogs && state.catalogs.doorToDoor))){ toast("Доступ к этому разделу пока закрыт"); return; }
-      if(page === "contest" && !(state.isAdmin || (state.catalogs && state.catalogs.contest))){ toast("Доступ к этому разделу пока закрыт"); return; }
-      if(page === "admin" && !state.isAdmin){ page = "home"; }
-      document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
-      const target = document.getElementById("page-"+page);
-      if(target) target.classList.remove("hidden");
-      closeAllDropdowns(); window.scrollTo({top:0, behavior:"smooth"});
-    }
-    
-    document.querySelectorAll("[data-nav]").forEach(el=>{ el.addEventListener("click", ()=> navigate(el.getAttribute("data-nav"))); });
-    
-    /* dropdowns (generic) */
-    function closeAllDropdowns(){ document.querySelectorAll(".dropdown.open").forEach(d=> d.classList.remove("open")); }
-    function wireDropdownToggle(btnId, dropdownId){
-      const btn = document.getElementById(btnId); const dd = document.getElementById(dropdownId);
-      if(!btn || !dd) return;
-      btn.addEventListener("click", (e)=>{
-        e.stopPropagation(); const willOpen = !dd.classList.contains("open"); closeAllDropdowns(); if(willOpen) dd.classList.add("open");
+        if(err && err.message === "BLOCKED"){ localStorage.removeItem("pp_name"); localStorage.removeItem("pp_admin"); gateError.textContent = "Ваш доступ к порталу заблокирован. Обратитесь к руководителю."; }
+        else if(err && err.message === "DELETED"){ localStorage.removeItem("pp_name"); localStorage.removeItem("pp_admin"); gateError.textContent = "Ваш аккаунт удалён с портала. Обратитесь к руководителю."; }
+        document.getElementById("gate").classList.remove("hidden");
       });
     }
-    
-    wireDropdownToggle("userChipBtn","userDropdown");
-    wireDropdownToggle("themeBtn","themeDropdown");
-    wireDropdownToggle("themeMiniBtn","themeDropdownGate");
-    document.addEventListener("click", ()=> closeAllDropdowns());
-    
-    /* modal helpers */
-    function openModal(id){ document.getElementById(id).classList.add("open"); }
-    function closeModal(id){ document.getElementById(id).classList.remove("open"); }
-    document.querySelectorAll("[data-close]").forEach(b=>{ b.addEventListener("click", ()=> closeModal(b.getAttribute("data-close"))); });
-    document.querySelectorAll(".modal-scrim").forEach(s=>{ s.addEventListener("click", (e)=>{ if(e.target === s) s.classList.remove("open"); }); });
-    
-    /* ============================================================ TIMELINES (Агент-стажёр / Входящий вызов / Поквартирный обход) ============================================================ */
-    async function ensureAgentSteps(){
-      const snap = await db.collection("catalogAgent").orderBy("order").get();
-      if(snap.empty){
-        const batch = db.batch();
-        DEFAULT_AGENT_STEPS.forEach((s,i)=>{
-          const ref = db.collection("catalogAgent").doc("step"+(i+1));
-          batch.set(ref, {order:i, title:s.title, text:s.text, mediaType: i===0?"image":"video", aspect: i===0?"wide":"tall", mediaUrl:""});
-        });
-        await batch.commit();
-      }
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", ()=>{
+  localStorage.removeItem("pp_name"); localStorage.removeItem("pp_admin");
+  state.unsubs.forEach(u=>u()); state.unsubs = [];
+  auth.signOut().finally(()=> location.reload());
+});
+
+// ============================================================ SETTINGS ============================================================
+function openSettingsModal(){
+  document.getElementById("settingsNameInput").value = state.name || "";
+  const prev = document.getElementById("settingsAvatarPreview");
+  prev.innerHTML = state.avatarUrl ? `<img src="${state.avatarUrl}" alt="">` : initials(state.name||"?");
+  document.getElementById("settingsAvatarInput").value = ""; document.getElementById("settingsStatus").textContent = "";
+  openModal("settingsModalScrim");
+}
+document.getElementById("settingsNavItem").addEventListener("click", openSettingsModal);
+
+document.getElementById("saveSettingsBtn").addEventListener("click", async ()=>{
+  const statusEl = document.getElementById("settingsStatus");
+  const newName = document.getElementById("settingsNameInput").value.trim();
+  if(!newName || newName.split(" ").length<2){ statusEl.textContent = "Введите Фамилию и Имя полностью"; return; }
+  const file = document.getElementById("settingsAvatarInput").files[0];
+  statusEl.textContent = "Сохранение…";
+  try {
+    const updates = { name:newName, normalized:slugify(newName) };
+    if(file){
+      const ref = storage.ref().child(`avatars/${state.slug}_${Date.now()}_${file.name}`);
+      await ref.put(file); updates.avatarUrl = await ref.getDownloadURL();
     }
-    
-    function stepCardHtml(s, i, adminMode, collectionName){
-      const aspectClass = s.aspect === "tall" ? "media-9x16" : "media-16x9";
-      const mediaInner = s.mediaUrl ? (s.mediaType === "video" ? `<video src="${s.mediaUrl}" muted loop autoplay playsinline></video>` : `<img src="${s.mediaUrl}" alt="">`) : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 15l-5-4-5 4-3-2-5 4"/></svg><small>${s.mediaType==="video"?"Видео":"Изображение"} ${s.aspect==="tall"?"9:16":"16:9"}</small>`;
-      if(!adminMode){
-        const likeId = `like_${state.slug}_${s.id}`;
-        const likes = state.likesCache||[];
-        const liked = likes.some(l=> l.id===likeId);
-        const likeCount = likes.filter(l=> l.stepId===s.id).length;
-        return `<div class="tl-item">
-          <div class="tl-num">${String(i+1).padStart(2,"0")}</div>
-          <div>
-            <h4>${escapeHtml(s.title)}</h4>
-            <p>${escapeHtml(s.text)}</p>
-            <div class="media-box ${aspectClass}">${mediaInner}</div>
-            <button class="like-btn ${liked?'liked':''}" data-like="${s.id}" data-catalog="${collectionName}" data-title="${escapeAttr(s.title)}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.5 5c2 0 3.5 1.2 4.5 2.7C11 6.2 12.5 5 14.5 5 18 5 19.5 8.4 22 11.7 19.5 16.4 12 21 12 21z"/>
-              </svg>
-              <span>${liked?'Нравится':'Нравится'}</span>
-              <span class="like-count-badge">${likeCount}</span>
-            </button>
-          </div>
-        </div>`;
-      }
-      return `<div class="tl-item">
-        <div class="tl-num">${String(i+1).padStart(2,"0")}</div>
-        <div>
-          <div class="field"><label class="field-label">Заголовок</label><input class="field-input" data-stepfield="title" value="${escapeAttr(s.title)}"></div>
-          <div class="field"><label class="field-label">Текст</label><textarea class="field-input" data-stepfield="text" rows="3">${escapeHtml(s.text)}</textarea></div>
-          <div class="field" style="display:flex; gap:10px;">
-            <div style="flex:1;"><label class="field-label">Тип медиа</label>
-              <select class="field-input" data-stepfield="mediaType">
-                <option value="image" ${s.mediaType!=="video"?"selected":""}>Изображение</option>
-                <option value="video" ${s.mediaType==="video"?"selected":""}>Видео</option>
-              </select>
-            </div>
-            <div style="flex:1;"><label class="field-label">Формат кадра</label>
-              <select class="field-input" data-stepfield="aspect">
-                <option value="wide" ${s.aspect!=="tall"?"selected":""}>Широкий 16:9</option>
-                <option value="tall" ${s.aspect==="tall"?"selected":""}>Вертикальный 9:16</option>
-              </select>
-            </div>
-          </div>
-          <div class="media-box ${aspectClass}">${mediaInner} <button class="btn btn-sm media-edit-btn" data-uploadmedia>Изменить медиа</button></div>
-          <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-            <button class="btn btn-sm" data-savestep>Сохранить</button>
-            <button class="btn btn-sm" data-moveup title="Выше">↑</button>
-            <button class="btn btn-sm" data-movedown title="Ниже">↓</button>
-            <button class="btn btn-sm" data-delstep style="color:var(--accent-2);">Удалить пункт</button>
-          </div>
+    await db.collection("agents").doc(state.slug).update(updates);
+    state.name = newName; if(updates.avatarUrl) state.avatarUrl = updates.avatarUrl;
+    refreshUserUI(); statusEl.textContent = ""; toast("Настройки сохранены"); closeModal("settingsModalScrim");
+  } catch(err) {
+    console.error(err); statusEl.textContent = "Ошибка сохранения";
+  }
+});
+
+// ============================================================ NAVIGATION ============================================================
+function navigate(page){
+  if(page === "catalog-call" && !(state.isAdmin || (state.catalogs && state.catalogs.incomingCall))){ toast("Доступ к этому разделу пока закрыт"); return; }
+  if(page === "catalog-pko" && !(state.isAdmin || (state.catalogs && state.catalogs.doorToDoor))){ toast("Доступ к этому разделу пока закрыт"); return; }
+  if(page === "contest" && !(state.isAdmin || (state.catalogs && state.catalogs.contest))){ toast("Доступ к этому разделу пока закрыт"); return; }
+  if(page === "admin" && !state.isAdmin){ page = "home"; }
+  document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+  const target = document.getElementById("page-"+page);
+  if(target) target.classList.remove("hidden");
+  closeAllDropdowns(); window.scrollTo({top:0, behavior:"smooth"});
+}
+
+document.querySelectorAll("[data-nav]").forEach(el=>{ el.addEventListener("click", ()=> navigate(el.getAttribute("data-nav"))); });
+
+function closeAllDropdowns(){ document.querySelectorAll(".dropdown.open").forEach(d=> d.classList.remove("open")); }
+function wireDropdownToggle(btnId, dropdownId){
+  const btn = document.getElementById(btnId); const dd = document.getElementById(dropdownId);
+  if(!btn || !dd) return;
+  btn.addEventListener("click", (e)=>{
+    e.stopPropagation(); const willOpen = !dd.classList.contains("open"); closeAllDropdowns(); if(willOpen) dd.classList.add("open");
+  });
+}
+
+wireDropdownToggle("userChipBtn","userDropdown");
+wireDropdownToggle("themeBtn","themeDropdown");
+wireDropdownToggle("themeMiniBtn","themeDropdownGate");
+document.addEventListener("click", ()=> closeAllDropdowns());
+
+function openModal(id){ document.getElementById(id).classList.add("open"); }
+function closeModal(id){ document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll("[data-close]").forEach(b=>{ b.addEventListener("click", ()=> closeModal(b.getAttribute("data-close"))); });
+document.querySelectorAll(".modal-scrim").forEach(s=>{ s.addEventListener("click", (e)=>{ if(e.target === s) s.classList.remove("open"); }); });
+
+// ============================================================ TIMELINES ============================================================
+async function ensureAgentSteps(){
+  const snap = await db.collection("catalogAgent").orderBy("order").get();
+  if(snap.empty){
+    const batch = db.batch();
+    DEFAULT_AGENT_STEPS.forEach((s,i)=>{
+      const ref = db.collection("catalogAgent").doc("step"+(i+1));
+      batch.set(ref, {order:i, title:s.title, text:s.text, mediaType: i===0?"image":"video", aspect: i===0?"wide":"tall", mediaUrl:""});
+    });
+    await batch.commit();
+  }
+}
+
+function stepCardHtml(s, i, adminMode, collectionName){
+  const aspectClass = s.aspect === "tall" ? "media-9x16" : "media-16x9";
+  const mediaInner = s.mediaUrl ? (s.mediaType === "video" ? `<video src="${s.mediaUrl}" muted loop autoplay playsinline></video>` : `<img src="${s.mediaUrl}" alt="">`) : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 15l-5-4-5 4-3-2-5 4"/></svg><small>${s.mediaType==="video"?"Видео":"Изображение"} ${s.aspect==="tall"?"9:16":"16:9"}</small>`;
+  if(!adminMode){
+    const likeId = `like_${state.slug}_${s.id}`;
+    const likes = state.likesCache||[];
+    const liked = likes.some(l=> l.id===likeId);
+    const likeCount = likes.filter(l=> l.stepId===s.id).length;
+    return `<div class="tl-item">
+      <div class="tl-num">${String(i+1).padStart(2,"0")}</div>
+      <div>
+        <h4>${escapeHtml(s.title)}</h4>
+        <p>${escapeHtml(s.text)}</p>
+        <div class="media-box ${aspectClass}">${mediaInner}</div>
+        <button class="like-btn ${liked?'liked':''}" data-like="${s.id}" data-catalog="${collectionName}" data-title="${escapeAttr(s.title)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.5 5c2 0 3.5 1.2 4.5 2.7C11 6.2 12.5 5 14.5 5 18 5 19.5 8.4 22 11.7 19.5 16.4 12 21 12 21z"/>
+          </svg>
+          <span>${liked?'Нравится':'Нравится'}</span>
+          <span class="like-count-badge">${likeCount}</span>
+        </button>
+      </div>
+    </div>`;
+  }
+  return `<div class="tl-item">
+    <div class="tl-num">${String(i+1).padStart(2,"0")}</div>
+    <div>
+      <div class="field"><label class="field-label">Заголовок</label><input class="field-input" data-stepfield="title" value="${escapeAttr(s.title)}"></div>
+      <div class="field"><label class="field-label">Текст</label><textarea class="field-input" data-stepfield="text" rows="3">${escapeHtml(s.text)}</textarea></div>
+      <div class="field" style="display:flex; gap:10px;">
+        <div style="flex:1;"><label class="field-label">Тип медиа</label>
+          <select class="field-input" data-stepfield="mediaType">
+            <option value="image" ${s.mediaType!=="video"?"selected":""}>Изображение</option>
+            <option value="video" ${s.mediaType==="video"?"selected":""}>Видео</option>
+          </select>
         </div>
-      </div>`;
-    }
-    
-    function renderTimeline(containerId, steps, adminMode, collectionName){
-      const el = document.getElementById(containerId);
-      if(!el) return;
-      if(!steps.length){
-        el.innerHTML = adminMode ? `<div class="empty-state">Пока нет пунктов — добавьте первый ниже</div>` : `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg>Материалы по этому разделу скоро появятся</div>`;
-        return;
-      }
-      el.innerHTML = steps.map((s,i)=> stepCardHtml(s, i, adminMode, collectionName)).join("");
-      if(!adminMode){
-        el.querySelectorAll("[data-like]").forEach(btn=>{ btn.addEventListener("click", ()=>{ toggleLike(btn.getAttribute("data-like"), btn.getAttribute("data-catalog"), btn.getAttribute("data-title")); }); });
-        return;
-      }
-      el.querySelectorAll(".tl-item").forEach((div, idx)=>{
-        const s = steps[idx];
-        div.querySelector("[data-savestep]")?.addEventListener("click", async ()=>{
-          const title = div.querySelector('[data-stepfield="title"]').value.trim();
-          const text = div.querySelector('[data-stepfield="text"]').value.trim();
-          const mediaType = div.querySelector('[data-stepfield="mediaType"]').value;
-          const aspect = div.querySelector('[data-stepfield="aspect"]').value;
-          await db.collection(collectionName).doc(s.id).update({title,text,mediaType,aspect});
-          toast("Сохранено");
-        });
-        div.querySelector("[data-uploadmedia]")?.addEventListener("click", ()=>{
-          const mt = div.querySelector('[data-stepfield="mediaType"]').value;
-          openMediaModal(collectionName, s.id, mt);
-        });
-        div.querySelector("[data-delstep]")?.addEventListener("click", async ()=>{
-          if(!confirm("Удалить этот пункт?")) return;
-          await db.collection(collectionName).doc(s.id).delete();
-        });
-        div.querySelector("[data-moveup]")?.addEventListener("click", async ()=>{
-          if(idx===0) return;
-          const other = steps[idx-1]; const batch = db.batch();
-          batch.update(db.collection(collectionName).doc(s.id), {order: other.order});
-          batch.update(db.collection(collectionName).doc(other.id), {order: s.order});
-          await batch.commit();
-        });
-        div.querySelector("[data-movedown]")?.addEventListener("click", async ()=>{
-          if(idx===steps.length-1) return;
-          const other = steps[idx+1]; const batch = db.batch();
-          batch.update(db.collection(collectionName).doc(s.id), {order: other.order});
-          batch.update(db.collection(collectionName).doc(other.id), {order: s.order});
-          await batch.commit();
-        });
-      });
-    }
-    
-    function addStepHandler(collectionName){
-      return async ()=>{
-        const snap = await db.collection(collectionName).orderBy("order","desc").limit(1).get();
-        const nextOrder = snap.empty ? 0 : (snap.docs[0].data().order||0)+1;
-        await db.collection(collectionName).add({order: nextOrder, title:"Новый пункт", text:"", mediaType:"image", aspect:"wide", mediaUrl:""});
-        toast("Пункт добавлен");
-      };
-    }
-    
-    document.getElementById("addAgentStepBtn").addEventListener("click", addStepHandler("catalogAgent"));
-    document.getElementById("addCallStepBtn").addEventListener("click", addStepHandler("catalogCall"));
-    document.getElementById("addPkoStepBtn").addEventListener("click", addStepHandler("catalogPko"));
-    
-    let mediaTargetCollection = null; let mediaTargetStepId = null;
-    function openMediaModal(collectionName, stepId, mediaType){
-      mediaTargetCollection = collectionName; mediaTargetStepId = stepId;
-      document.getElementById("mediaModalStatus").textContent = mediaType === "video" ? "Загрузите видеофайл" : "Загрузите изображение";
-      document.getElementById("mediaFileInput").value = ""; openModal("mediaModalScrim");
-    }
-    
-    document.getElementById("mediaUploadConfirmBtn").addEventListener("click", async ()=>{
-      const file = document.getElementById("mediaFileInput").files[0];
-      if(!file || !mediaTargetStepId || !mediaTargetCollection) return;
-      const statusEl = document.getElementById("mediaModalStatus");
-      statusEl.textContent = "Загрузка…";
-      try {
-        const path = `${mediaTargetCollection}/${mediaTargetStepId}_${Date.now()}_${file.name}`;
-        const ref = storage.ref().child(path);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        await db.collection(mediaTargetCollection).doc(mediaTargetStepId).update({mediaUrl:url});
-        toast("Медиафайл загружен"); closeModal("mediaModalScrim");
-      } catch(err) {
-        console.error(err); statusEl.textContent = "Ошибка загрузки. Попробуйте ещё раз.";
-      }
+        <div style="flex:1;"><label class="field-label">Формат кадра</label>
+          <select class="field-input" data-stepfield="aspect">
+            <option value="wide" ${s.aspect!=="tall"?"selected":""}>Широкий 16:9</option>
+            <option value="tall" ${s.aspect==="tall"?"selected":""}>Вертикальный 9:16</option>
+          </select>
+        </div>
+      </div>
+      <div class="media-box ${aspectClass}">${mediaInner} <button class="btn btn-sm media-edit-btn" data-uploadmedia>Изменить медиа</button></div>
+      <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+        <button class="btn btn-sm" data-savestep>Сохранить</button>
+        <button class="btn btn-sm" data-moveup title="Выше">↑</button>
+        <button class="btn btn-sm" data-movedown title="Ниже">↓</button>
+        <button class="btn btn-sm" data-delstep style="color:var(--accent-2);">Удалить пункт</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTimeline(containerId, steps, adminMode, collectionName){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  if(!steps.length){
+    el.innerHTML = adminMode ? `<div class="empty-state">Пока нет пунктов — добавьте первый ниже</div>` : `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg>Материалы по этому разделу скоро появятся</div>`;
+    return;
+  }
+  el.innerHTML = steps.map((s,i)=> stepCardHtml(s, i, adminMode, collectionName)).join("");
+  if(!adminMode){
+    el.querySelectorAll("[data-like]").forEach(btn=>{ btn.addEventListener("click", ()=>{ toggleLike(btn.getAttribute("data-like"), btn.getAttribute("data-catalog"), btn.getAttribute("data-title")); }); });
+    return;
+  }
+  el.querySelectorAll(".tl-item").forEach((div, idx)=>{
+    const s = steps[idx];
+    div.querySelector("[data-savestep]")?.addEventListener("click", async ()=>{
+      const title = div.querySelector('[data-stepfield="title"]').value.trim();
+      const text = div.querySelector('[data-stepfield="text"]').value.trim();
+      const mediaType = div.querySelector('[data-stepfield="mediaType"]').value;
+      const aspect = div.querySelector('[data-stepfield="aspect"]').value;
+      await db.collection(collectionName).doc(s.id).update({title,text,mediaType,aspect});
+      toast("Сохранено");
     });
-    
-    /* ============================================================ NEWS ============================================================ */
-    function renderNews(items){
-      const feed = document.getElementById("newsFeed"); document.getElementById("statNews").textContent = items.length;
-      if(!items.length){
-        feed.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg> Пока нет новостей — загляните позже</div>`;
-      } else {
-        feed.innerHTML = items.map(n => `
-          <div class="card news-card">
-            ${n.imageUrl ? `<img src="${n.imageUrl}" alt="">` : ""}
-            <div class="news-body">
-              <h3>${escapeHtml(n.title)}</h3>
-              <p>${escapeHtml(n.text)}</p>
-              <div class="news-meta">${formatDate(n.createdAt)}</div>
-            </div>
-          </div>`).join("");
-      }
-      if(state.isAdmin){
-        const adminList = document.getElementById("newsAdminList");
-        adminList.innerHTML = items.map(n => `
-          <div class="card news-card">
-            ${n.imageUrl ? `<img src="${n.imageUrl}" alt="">` : ""}
-            <div class="news-body">
-              <h3>${escapeHtml(n.title)}</h3>
-              <p>${escapeHtml(n.text)}</p>
-              <button class="btn btn-sm" style="margin-top:10px;" data-delnews="${n.id}">Удалить</button>
-            </div>
-          </div>`).join("");
-        adminList.querySelectorAll("[data-delnews]").forEach(b=>{ b.addEventListener("click", ()=> db.collection("news").doc(b.getAttribute("data-delnews")).delete()); });
-      }
-    }
-    
-    document.getElementById("addNewsBtn")?.addEventListener("click", ()=> navigate("admin"));
-    document.getElementById("publishNewsBtn").addEventListener("click", async ()=>{
-      const title = document.getElementById("newsTitleInput").value.trim();
-      const text = document.getElementById("newsTextInput").value.trim();
-      const file = document.getElementById("newsImageInput").files[0];
-      if(!title || !text){ toast("Заполните заголовок и текст"); return; }
-      const statusEl = document.getElementById("newsUploadStatus");
-      try {
-        let imageUrl = "";
-        if(file){
-          statusEl.textContent = "Загрузка изображения…";
-          const ref = storage.ref().child(`news/${Date.now()}_${file.name}`);
-          await ref.put(file); imageUrl = await ref.getDownloadURL();
-        }
-        await db.collection("news").add({ title, text, imageUrl, author: state.name, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-        document.getElementById("newsTitleInput").value = ""; document.getElementById("newsTextInput").value = ""; document.getElementById("newsImageInput").value = ""; statusEl.textContent = ""; toast("Новость опубликована");
-      } catch(err) {
-        console.error(err); statusEl.textContent = "Ошибка публикации";
-      }
+    div.querySelector("[data-uploadmedia]")?.addEventListener("click", ()=>{
+      const mt = div.querySelector('[data-stepfield="mediaType"]').value;
+      openMediaModal(collectionName, s.id, mt);
     });
-    
-    /* ============================================================ CONTESTS ============================================================ */
-    async function ensureContests(){
-      const snap = await db.collection("contests").get();
-      if(snap.empty){
-        const batch = db.batch();
-        DEFAULT_CONTESTS.forEach(c=>{ batch.set(db.collection("contests").doc(c.id), c); });
-        await batch.commit();
-      }
+    div.querySelector("[data-delstep]")?.addEventListener("click", async ()=>{
+      if(!confirm("Удалить этот пункт?")) return;
+      await db.collection(collectionName).doc(s.id).delete();
+    });
+    div.querySelector("[data-moveup]")?.addEventListener("click", async ()=>{
+      if(idx===0) return;
+      const other = steps[idx-1]; const batch = db.batch();
+      batch.update(db.collection(collectionName).doc(s.id), {order: other.order});
+      batch.update(db.collection(collectionName).doc(other.id), {order: s.order});
+      await batch.commit();
+    });
+    div.querySelector("[data-movedown]")?.addEventListener("click", async ()=>{
+      if(idx===steps.length-1) return;
+      const other = steps[idx+1]; const batch = db.batch();
+      batch.update(db.collection(collectionName).doc(s.id), {order: other.order});
+      batch.update(db.collection(collectionName).doc(other.id), {order: s.order});
+      await batch.commit();
+    });
+  });
+}
+
+function addStepHandler(collectionName){
+  return async ()=>{
+    const snap = await db.collection(collectionName).orderBy("order","desc").limit(1).get();
+    const nextOrder = snap.empty ? 0 : (snap.docs[0].data().order||0)+1;
+    await db.collection(collectionName).add({order: nextOrder, title:"Новый пункт", text:"", mediaType:"image", aspect:"wide", mediaUrl:""});
+    toast("Пункт добавлен");
+  };
+}
+
+document.getElementById("addAgentStepBtn").addEventListener("click", addStepHandler("catalogAgent"));
+document.getElementById("addCallStepBtn").addEventListener("click", addStepHandler("catalogCall"));
+document.getElementById("addPkoStepBtn").addEventListener("click", addStepHandler("catalogPko"));
+
+let mediaTargetCollection = null; let mediaTargetStepId = null;
+function openMediaModal(collectionName, stepId, mediaType){
+  mediaTargetCollection = collectionName; mediaTargetStepId = stepId;
+  document.getElementById("mediaModalStatus").textContent = mediaType === "video" ? "Загрузите видеофайл" : "Загрузите изображение";
+  document.getElementById("mediaFileInput").value = ""; openModal("mediaModalScrim");
+}
+
+document.getElementById("mediaUploadConfirmBtn").addEventListener("click", async ()=>{
+  const file = document.getElementById("mediaFileInput").files[0];
+  if(!file || !mediaTargetStepId || !mediaTargetCollection) return;
+  const statusEl = document.getElementById("mediaModalStatus");
+  statusEl.textContent = "Загрузка…";
+  try {
+    const path = `${mediaTargetCollection}/${mediaTargetStepId}_${Date.now()}_${file.name}`;
+    const ref = storage.ref().child(path);
+    await ref.put(file);
+    const url = await ref.getDownloadURL();
+    await db.collection(mediaTargetCollection).doc(mediaTargetStepId).update({mediaUrl:url});
+    toast("Медиафайл загружен"); closeModal("mediaModalScrim");
+  } catch(err) {
+    console.error(err); statusEl.textContent = "Ошибка загрузки. Попробуйте ещё раз.";
+  }
+});
+
+// ============================================================ NEWS ============================================================
+function renderNews(items){
+  const feed = document.getElementById("newsFeed"); document.getElementById("statNews").textContent = items.length;
+  if(!items.length){
+    feed.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h4"/></svg> Пока нет новостей — загляните позже</div>`;
+  } else {
+    feed.innerHTML = items.map(n => `
+      <div class="card news-card">
+        ${n.imageUrl ? `<img src="${n.imageUrl}" alt="">` : ""}
+        <div class="news-body">
+          <h3>${escapeHtml(n.title)}</h3>
+          <p>${escapeHtml(n.text)}</p>
+          <div class="news-meta">${formatDate(n.createdAt)}</div>
+        </div>
+      </div>`).join("");
+  }
+  if(state.isAdmin){
+    const adminList = document.getElementById("newsAdminList");
+    adminList.innerHTML = items.map(n => `
+      <div class="card news-card">
+        ${n.imageUrl ? `<img src="${n.imageUrl}" alt="">` : ""}
+        <div class="news-body">
+          <h3>${escapeHtml(n.title)}</h3>
+          <p>${escapeHtml(n.text)}</p>
+          <button class="btn btn-sm" style="margin-top:10px;" data-delnews="${n.id}">Удалить</button>
+        </div>
+      </div>`).join("");
+    adminList.querySelectorAll("[data-delnews]").forEach(b=>{ b.addEventListener("click", ()=> db.collection("news").doc(b.getAttribute("data-delnews")).delete()); });
+  }
+}
+
+document.getElementById("addNewsBtn")?.addEventListener("click", ()=> navigate("admin"));
+document.getElementById("publishNewsBtn").addEventListener("click", async ()=>{
+  const title = document.getElementById("newsTitleInput").value.trim();
+  const text = document.getElementById("newsTextInput").value.trim();
+  const file = document.getElementById("newsImageInput").files[0];
+  if(!title || !text){ toast("Заполните заголовок и текст"); return; }
+  const statusEl = document.getElementById("newsUploadStatus");
+  try {
+    let imageUrl = "";
+    if(file){
+      statusEl.textContent = "Загрузка изображения…";
+      const ref = storage.ref().child(`news/${Date.now()}_${file.name}`);
+      await ref.put(file); imageUrl = await ref.getDownloadURL();
     }
-    
-    function renderContests(contests){
-      contests.sort((a,b)=> (a.order??0) - (b.order??0));
-      const grid = document.getElementById("contestGrid");
-      grid.innerHTML = contests.map(c => contestCardHtml(c, false)).join("");
-      if(state.isAdmin){
-        const adminGrid = document.getElementById("contestAdminGrid");
-        adminGrid.innerHTML = contests.map(c => contestCardHtml(c, true)).join("");
-        attachContestAdminHandlers(contests);
-      }
+    await db.collection("news").add({ title, text, imageUrl, author: state.name, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    document.getElementById("newsTitleInput").value = ""; document.getElementById("newsTextInput").value = ""; document.getElementById("newsImageInput").value = ""; statusEl.textContent = ""; toast("Новость опубликована");
+  } catch(err) {
+    console.error(err); statusEl.textContent = "Ошибка публикации";
+  }
+});
+
+// ============================================================ CONTESTS ============================================================
+async function ensureContests(){
+  const snap = await db.collection("contests").get();
+  if(snap.empty){
+    const batch = db.batch();
+    DEFAULT_CONTESTS.forEach(c=>{ batch.set(db.collection("contests").doc(c.id), c); });
+    await batch.commit();
+  }
+}
+
+function renderContests(contests){
+  contests.sort((a,b)=> (a.order??0) - (b.order??0));
+  const grid = document.getElementById("contestGrid");
+  grid.innerHTML = contests.map(c => contestCardHtml(c, false)).join("");
+  if(state.isAdmin){
+    const adminGrid = document.getElementById("contestAdminGrid");
+    adminGrid.innerHTML = contests.map(c => contestCardHtml(c, true)).join("");
+    if(typeof attachContestAdminHandlers === "function") {
+      attachContestAdminHandlers(contests);
     }
-    
-    function contestCardHtml(c, adminMode){
-      const sorted = [...(c.leaderboard||[])].sort((a,b)=> b.count-a.count);
-      return `
+  }
+}
+
+function contestCardHtml(c, adminMode){
+  const sorted = [...(c.leaderboard||[])].sort((a,b)=> b.count-a.count);
+  return `
+    <div class="card contest-card">
+      <h3>${c.title}</h3>
+      <p>${c.subtitle}</p>
+    </div>
+  `;
+}
+
         <div class="card contest-card">
           <span class="contest-tag">Конкурс</span>
           <h3>${escapeHtml(c.title)}</h3>
